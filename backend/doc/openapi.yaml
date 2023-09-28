@@ -1,0 +1,70 @@
+openapi: 3.0.3
+
+info:
+  title: 	OpenBadgeVC Cabinet Server API
+  description: OpenBadgeVCキャビネットサーバAPI
+  version: 0.1.0
+
+servers:
+  - url: https://openbadgevccabinet.example.com/api/v1
+
+tags:
+  - name: submission_badge
+    description: バッジ提出
+
+paths:
+  /submission_badge:
+    post:
+      tags:
+        - consumer
+      description: キャビネットにバッジを提出する
+      parameters:
+        - name: user_email
+          in: header
+          description: user email address
+          required: true
+          schema:
+            type: string
+        - name: badge_vc
+          in: header
+          description: JsonWebToken by Base64
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/submission_badge_result'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/submission_badge_result'
+        '500':
+          description: Bad server process
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/submission_badge_result'
+components:
+  schemas:
+   submission_badge_result:
+      type: object
+      properties:
+        reason_code:
+            type: integer
+            # 0  success
+            # 10 bad email address
+            # 11 verify badge ng
+            # 12 other
+            # 20 server error
+        reason_msg:
+            type: string
+      additionalProperties: false
+      required:
+        - reason_code
+        - reason_msg
