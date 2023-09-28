@@ -16,7 +16,7 @@ paths:
   /submission_badge:
     post:
       tags:
-        - consumer
+        - submission_badge
       description: キャビネットにバッジを提出する
       parameters:
         - name: user_email
