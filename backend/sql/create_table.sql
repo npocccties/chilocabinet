@@ -15,7 +15,7 @@ create table submitted_badges (
     submittede_at timestamp not null,           -- 提出日時
     badge_name varchar(256) not null,           -- バッジ名
     badge_class_id text not null,               -- バッジクラスID
-    badge_email text not null,                  -- バッジEmail
+    badge_email text not null,                  -- バッジ所有者Email
     badge_issure_name varchar(256) not null,    -- バッジ発行者名
     badge_data bytea not null,                  -- バッジデータ
     downloaded_at timestamp null,               -- ダウンロード日時
