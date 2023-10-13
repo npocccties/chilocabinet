@@ -19,8 +19,7 @@ create table submitted_badges (
     badge_issure_name varchar(256) not null,    -- バッジ発行者名
     badge_data bytea not null,                  -- バッジデータ
     downloaded_at timestamp null,               -- ダウンロード日時
-    primary key(user_email, submittede_at, badge_class_id),
-    foreign key (user_email) references user_emails (user_email)
+    primary key(user_email, submittede_at, badge_class_id)
 );
 
 create index on submitted_badges (
