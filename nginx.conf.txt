@@ -1,0 +1,34 @@
+geo $white_ip {
+    default 1;
+    172.18.0.254 0;
+}
+
+map $white_ip $limit_object {
+    0   "";
+    1   $binary_remote_addr;
+}
+
+limit_req_zone $limit_object zone=lrz:10m rate=30r/s;
+
+upstream front {
+  server chilocabinet:3000;
+}
+server {
+    listen 8080;
+    location / {
+        limit_req zone=lrz burst=30 nodelay;
+        proxy_pass http://front;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+        auth_basic "Restricted";                   # 認証時に表示されるメッセージ
+        auth_basic_user_file /etc/nginx/.htpasswd; # .htpasswdファイルのパス
+        }
+    location /static/ {
+        alias /workspace/static/;
+    }
+    error_page  503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}

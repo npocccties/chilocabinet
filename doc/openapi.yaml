@@ -1,0 +1,59 @@
+openapi: 3.0.3
+
+info:
+  title: 	OpenBadgeVC Walglet Server API
+  description: OpenBadgeVCウォレットサーバAPI
+  version: 0.1.0
+
+servers:
+  - url: https://openbadgevcwallet.example.com/api/v1
+
+tags:
+  - name: user_badgelist
+    description: バッジリスト取得
+
+paths:
+  /user_badgelist:
+    post:
+      tags:
+        - user_badgelist
+      description: 対象ユーザのの保持バッジリストを返す
+      parameters:
+        - name: saml
+          in: header
+          description: SAML by BASE64
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_badgelist'
+        '400':
+          description: Bad request
+          
+components:
+  schemas:
+   user_badgelist:
+      type: object
+      properties:
+        badge_list:
+          type: array
+          items:
+            type: object
+            properties:
+              badge_class:
+                type: string
+              badge_name:
+                type: string
+            additionalProperties: false
+            required:
+              - badge_class
+              - badge_name
+      additionalProperties: false
+      required:
+        - badge_list
+

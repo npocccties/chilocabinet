@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model badge_vcs {
+  badge_vc_id       Int       @id @default(autoincrement())
+  mywallet_id       Int
+  moodle_name       String?   @db.VarChar(256)
+  badge_category    String?   @db.VarChar(256)
+  badge_name        String?   @db.VarChar(256)
+  badge_email       String
+  badge_class_id    String
+  badge_issuer_name String    @db.VarChar(256)
+  badge_issuedon    DateTime  @db.Timestamp(6)
+  vc_data_header    String
+  vc_data_payload   String
+  vc_data_signature String
+  create_time       DateTime  @db.Timestamp(6)
+  mywallets         mywallets @relation(fields: [mywallet_id], references: [mywallet_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model mywallets {
+  mywallet_id Int           @id @default(autoincrement())
+  orthros_id  String        @unique
+  create_time DateTime      @db.Timestamp(6)
+  badge_vcs   badge_vcs[]
+  submissions submissions[]
+}
+
+model submissions {
+  badge_vc_id      Int
+  mywallet_id      Int
+  submission_time  DateTime  @db.Timestamp(6)
+  submission_email String
+  submission_to    String    @db.VarChar(256)
+  mywallets        mywallets @relation(fields: [badge_vc_id], references: [mywallet_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([badge_vc_id, submission_time])
+}

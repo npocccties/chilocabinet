@@ -1,0 +1,54 @@
+{
+  "extends": [
+    "eslint:recommended",
+    // "plugin:@typescript-eslint/recommended",
+    // "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier"
+  ],
+  "plugins": [
+    // "@typescript-eslint",
+    "import",
+    "unused-imports"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 13
+    // "project": "./tsconfig.json"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    // TODO: no-unused-vars no-irregular-whitespace はOSSからの移行中はオフ
+    "no-unused-vars": "off",
+    "no-irregular-whitespace": "off",
+    "unused-imports/no-unused-imports": "warn"
+    // "import/order": [
+    //   "error",
+    //   {
+    //     "groups": ["builtin", "external", "internal", ["parent", "sibling"], "object", "type", "index"],
+    //     "newlines-between": "always",
+    //     "pathGroupsExcludedImportTypes": ["builtin"],
+    //     "alphabetize": {
+    //       "order": "asc", //
+    //       "caseInsensitive": true
+    //     },
+    //     "pathGroups": [
+    //       {
+    //         "pattern": "@/components/common",
+    //         "group": "internal",
+    //         "position": "before"
+    //       },
+    //       {
+    //         "pattern": "@/components/hooks",
+    //         "group": "internal",
+    //         "position": "before"
+    //       }
+    //     ]
+    //   }
+    // ]
+  }
+}
