@@ -1,5 +1,6 @@
 ### 証明書 ###
 ssl_certs/
+authfile/
 
 node_modules/
 db/
