@@ -1,7 +1,8 @@
 
 export type AppState = {
-    viewPage: string,
-    pageEvent: string,
+  viewPage: string,
+  pageEvent: string,
+  reqBadgeList: boolean,
 };
 
 export type AppStateGetters = {

@@ -7,7 +7,7 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "eslint --fix \"pages/**/*.{ts,tsx}\" \"share/**/*.{ts,tsx}\" \"components/**/*.{ts,tsx}\"",
-    "cmd:start:dev": "npx prisma db seed && node server.js"
+    "cmd:start:dev": "node server.js"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"

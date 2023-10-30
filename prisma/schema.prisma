@@ -7,38 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model badge_vcs {
-  badge_vc_id       Int       @id @default(autoincrement())
-  mywallet_id       Int
-  moodle_name       String?   @db.VarChar(256)
-  badge_category    String?   @db.VarChar(256)
-  badge_name        String?   @db.VarChar(256)
-  badge_email       String
-  badge_class_id    String
-  badge_issuer_name String    @db.VarChar(256)
-  badge_issuedon    DateTime  @db.Timestamp(6)
-  vc_data_header    String
-  vc_data_payload   String
-  vc_data_signature String
-  create_time       DateTime  @db.Timestamp(6)
-  mywallets         mywallets @relation(fields: [mywallet_id], references: [mywallet_id], onDelete: NoAction, onUpdate: NoAction)
+model UserEMails {
+  userEMail         String    @id @db.VarChar(256) @map("user_email")
+  userName          String    @db.VarChar(256) @map("user_name")
+  createdAt         DateTime  @db.Timestamp(6)  @map("created_at")
+
+  @@map("user_emails")
 }
 
-model mywallets {
-  mywallet_id Int           @id @default(autoincrement())
-  orthros_id  String        @unique
-  create_time DateTime      @db.Timestamp(6)
-  badge_vcs   badge_vcs[]
-  submissions submissions[]
-}
+model SubmittedBadges {
+  userEMail         String    @db.VarChar(256) @map("user_email")
+  submittedAt       DateTime  @db.Timestamp(6) @map("submitted_at") 
+  badgeName         String    @db.VarChar(256) @map("badge_name")
+  badgeClassId      String    @map("badge_class_id")
+  badgeEMail        String    @db.VarChar(256) @map("badge_email")
+  badgeIssuerName   String    @map("badge_issuer_name")
+  badgeData         Bytes     @map("badge_data")
 
-model submissions {
-  badge_vc_id      Int
-  mywallet_id      Int
-  submission_time  DateTime  @db.Timestamp(6)
-  submission_email String
-  submission_to    String    @db.VarChar(256)
-  mywallets        mywallets @relation(fields: [badge_vc_id], references: [mywallet_id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([badge_vc_id, submission_time])
+  @@id([userEMail, submittedAt, badgeClassId])
+  @@map("submitted_badges")
 }

@@ -10,6 +10,7 @@ const appState = atom<AppState>({
   default: {
     viewPage: "UserListNone",
     pageEvent: null,
+    reqBadgeList: false,
   },
 });
 
@@ -39,6 +40,7 @@ export const AppControlHeaderOnClick1 = (state) => {
 export const AppControlHeaderOnClick2 = (state) => {
   const update = {...state};
   update.viewPage = "BadgeList";
+  update.reqBadgeList = true;
   return update;
 };
 
@@ -55,4 +57,10 @@ export const AppControlUserListPageGetUserData = (state) => {
   update.viewPage = "UserListNone";
   update.pageEvent = null;
   return update;
+};
+
+export const AppControlClearReqBadgeList = (state) => {
+  const update = {...state}; 
+  update.reqBadgeList = false;
+  return update; 
 };
