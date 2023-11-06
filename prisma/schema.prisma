@@ -8,22 +8,25 @@ datasource db {
 }
 
 model UserEMails {
-  userEMail         String    @id @db.VarChar(256) @map("user_email")
-  userName          String    @db.VarChar(256) @map("user_name")
-  createdAt         DateTime  @db.Timestamp(6)  @map("created_at")
+  userEMail String   @id @map("user_email") @db.VarChar(256)
+  userName  String   @map("user_name") @db.VarChar(256)
+  createdAt DateTime @map("created_at") @db.Timestamp(6)
 
   @@map("user_emails")
 }
 
 model SubmittedBadges {
-  userEMail         String    @db.VarChar(256) @map("user_email")
-  submittedAt       DateTime  @db.Timestamp(6) @map("submitted_at") 
-  badgeName         String    @db.VarChar(256) @map("badge_name")
-  badgeClassId      String    @map("badge_class_id")
-  badgeEMail        String    @db.VarChar(256) @map("badge_email")
-  badgeIssuerName   String    @map("badge_issuer_name")
-  badgeData         Bytes     @map("badge_data")
+  userEMail       String    @map("user_email") @db.VarChar(256)
+  submittedAt     DateTime  @map("submitted_at") @db.Timestamp(6)
+  badgeName       String    @map("badge_name") @db.VarChar(256)
+  badgeClassId    String    @map("badge_class_id")
+  badgeEMail      String    @map("badge_email") @db.VarChar(256)
+  badgeIssuerName String    @map("badge_issuer_name") @db.VarChar(256)
+  badgeData       Bytes     @map("badge_data")
+  downloadedAt    DateTime? @map("downloaded_at") @db.Timestamp(6)
 
   @@id([userEMail, submittedAt, badgeClassId])
+  @@index([badgeName])
+  @@index([downloadedAt])
   @@map("submitted_badges")
 }

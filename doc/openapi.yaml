@@ -1,27 +1,33 @@
 openapi: 3.0.3
 
 info:
-  title: 	OpenBadgeVC Walglet Server API
-  description: OpenBadgeVCウォレットサーバAPI
+  title: 	OpenBadgeVC Cabinet Server API
+  description: OpenBadgeVCキャビネットサーバAPI
   version: 0.1.0
 
 servers:
-  - url: https://openbadgevcwallet.example.com/api/v1
+  - url: https://openbadgevccabinet.example.com/api/v1
 
 tags:
-  - name: user_badgelist
-    description: バッジリスト取得
+  - name: submission_badge
+    description: バッジ提出
 
 paths:
-  /user_badgelist:
+  /submission_badge:
     post:
       tags:
-        - user_badgelist
-      description: 対象ユーザのの保持バッジリストを返す
+        - submission_badge
+      description: キャビネットにバッジを提出する
       parameters:
-        - name: saml
+        - name: user_email
           in: header
-          description: SAML by BASE64
+          description: user email address
+          required: true
+          schema:
+            type: string
+        - name: badge_vc
+          in: header
+          description: JsonWebToken by Base64
           required: true
           schema:
             type: string
@@ -31,29 +37,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_badgelist'
+                $ref: '#/components/schemas/submission_badge_result'
         '400':
           description: Bad request
-          
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/submission_badge_result'
+        '500':
+          description: Bad server process
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/submission_badge_result'
 components:
   schemas:
-   user_badgelist:
+   submission_badge_result:
       type: object
       properties:
-        badge_list:
-          type: array
-          items:
-            type: object
-            properties:
-              badge_class:
-                type: string
-              badge_name:
-                type: string
-            additionalProperties: false
-            required:
-              - badge_class
-              - badge_name
+        reason_code:
+            type: integer
+            # 0  success
+            # 100 bad request (other)
+            # 101   bad email address
+            # 102   verify ng badge ng
+            # 103   verify ng vc
+            # 200 server error
+        reason_msg:
+            type: string
       additionalProperties: false
       required:
-        - badge_list
-
+        - reason_code
+        - reason_msg

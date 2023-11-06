@@ -47,7 +47,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
     badgeEMail: "test_user_02.moodle@mail.server",
     badgeIssuerName: "バッジ発行者Ａ",
     badgeData: new Buffer(10), 
-    //downloadedAt: null,
+    downloadedAt: null,
   },
   {
     userEMail: "test_user_02@mail.b.server",
@@ -57,7 +57,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
     badgeEMail: "test_user_02.moodle@mail.server",
     badgeIssuerName: "バッジ発行者Ａ",
     badgeData: new Buffer(10),
-    //downloadedAt: null,
+    downloadedAt: null,
   },
   {
     userEMail: "test_user_02@mail.b.server",
@@ -67,7 +67,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
     badgeEMail: "test_user_02.moodle@mail.server",
     badgeIssuerName: "バッジ発行者Ｂ",
     badgeData: new Buffer(10),
-    //downloadedAt: null,
+    downloadedAt: null,
   },
   {
     userEMail: "test_user_04@mail.d.server",
@@ -77,7 +77,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
     badgeEMail: "test_user_04.moodle@mail.server",
     badgeIssuerName: "バッジ発行者Ａ",
     badgeData: new Buffer(10),
-    //downloadedAt: null,
+    downloadedAt: null,
   },
   {
     userEMail: "test_user_05@mail.e.server",
@@ -87,7 +87,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
     badgeEMail: "test_user_05.moodle@mail.server",
     badgeIssuerName: "バッジ発行者Ｃ",
     badgeData: new Buffer(10),
-    //downloadedAt: null,
+    downloadedAt: null,
   },
 ];
 
