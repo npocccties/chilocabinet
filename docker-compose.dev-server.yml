@@ -44,6 +44,13 @@ services:
       - db_network
     container_name: chilocabinet
     restart: "no"
+    environment:
+      - LOG_LEVEL=$LOG_LEVEL
+    logging:
+      driver: json-file
+      options:
+        max-size: 100m
+        max-file: "7"
 
 networks:
   app_network:

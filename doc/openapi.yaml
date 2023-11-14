@@ -20,13 +20,11 @@ paths:
       description: キャビネットにバッジを提出する
       parameters:
         - name: user_email
-          in: header
           description: user email address
           required: true
           schema:
             type: string
         - name: badge_vc
-          in: header
           description: JsonWebToken by Base64
           required: true
           schema:

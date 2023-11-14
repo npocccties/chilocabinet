@@ -4,21 +4,21 @@ import type { NextPage } from "next";
 
 import { Layout } from "@/components/Layout";
 import { Metatag } from "@/components/Metatag";
-import { UserList } from "@/components/page/UserList";
-import { UserListNone } from "@/components/page/UserListNone";
-import { BadgeList } from "@/components/page/BadgeList";
-import { BadgeUserList } from "@/components/page/BadgeUserList";
+import { UserList } from "@/components/pages/UserList";
+import { NonePage } from "@/components/pages/NonePage";
+import { BadgeList } from "@/components/pages/BadgeList";
+import { BadgeUserList } from "@/components/pages/BadgeUserList";
 
-//import { MyWaletVCList } from "@/components/page/mywallet/List";
+//import { MyWaletVCList } from "@/components/pages/mywallet/List";
 
 import { SERVICE_NAME, SERVICE_DESCRITION } from "@/configs";
 
 const Home: NextPage = () => {
   return (
-    <Layout maxW="xl">
+    <Layout maxW="container.xl">
       <Metatag title={SERVICE_NAME} description={SERVICE_DESCRITION} />
       <UserList />
-      <UserListNone />
+      <NonePage />
       <BadgeList />
       <BadgeUserList />
     </Layout>

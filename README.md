@@ -39,18 +39,6 @@ make down-local
 npm run dev
 ```
 
-### アプリケーションとDBとの連携
-appコンテナ内に移動した後、以下に記載している「prismaの使用方法」より、コマンドを実行してDBとの連携を行います。
-
-## Visual Studio CodeでdevContainerを使用する場合
-1. Docker および Docker Compose をインストール
-2. Visual Studio Code に拡張機能「Dev - Containers」をインストール
-3. 当READMEのsetupを実行
-4. コマンドパレット で「Remote-Containers: Open Folder in Container...」を選択し、chilowalletディレクトリを選択
-
-## デバッグ方法
-上記のdevContainerを起動し、VSCodeの左側にあるデバッグから起動ボタンを押して実行してください。
-
 ## prismaの使用方法
 詳細に関しては[ドキュメント](https://www.prisma.io/docs/reference/api-reference/command-reference)を参照してください。
 
@@ -107,6 +95,21 @@ npx prisma studio
     make down-dev
     ```
 
+## テストデータ作成
+コンテナ起動後、chilowallet-appに入り、下記を実行
+```
+npx prisma db seed
+```
+
+もしType Error等で失敗する場合は、`npx prisma generate`を実行してから再度上記のコマンドを実行してください。
+※ ビルドキャッシュなどの影響で、稀にschema.prismaの中身がローカルのファイルと異なった状態でコピーされていることがあります。その場合はdockerのキャッシュを適宜削除して再度コンテナを起動してください。
+
+`npx prisma generate` コマンド実行にroot権限が必要なためdockerコンテナ内にログインする場合は以下のコマンドを実行して下さい。
+    ```
+    docker container exec -it u 0 chilocabinet sh
+    ```
+
+
 
 # 環境変数
 
@@ -143,7 +146,4 @@ https://nextjs.org/docs/pages/building-your-application/configuring/environment-
 | :----------------------------------- | :------------------------------------------ | :------------------- |
 |baseURL|アプリケーション起動時のURL|http://localhost:3000|
 |clientName|アプリケーションの名称|chilowallet|
-|vcApp_client_id|AzureクライアントID|-|
-|vcApp_azTenantId|AzureテナントID|-|
-|vcApp_client_secret|Azureクライアントシークレット|-|
-|vcApp_scope|AzureへVC発行要求するためのスコープ配列|-|
+|LOG_LEVEL|ログレベルの設定|-|

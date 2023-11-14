@@ -4,63 +4,147 @@ import { atom, useRecoilValue, useRecoilState, useSetRecoilState } from "recoil"
 import { AppState, AppStateGetters, AppStateActions } from "@/share/store/appState/types";
 import { RECOIL_ATOMS_KEYS } from "@/share/store/keys";
 
-// state はそのまま export しない
-const appState = atom<AppState>({
-  key: RECOIL_ATOMS_KEYS.APP_STATE,
+
+
+
+export const AppPage = { 
+  UserList:       "UserList",
+  UserListNotApp: "UserListNotApp",
+  BadgeList:      "BadgeList",
+  BadgeUserList:  "BadgeUserList",
+  None:           "None",
+} as const;
+
+export const AppHeader = {
+  UserList:       "UserList",
+  BadgeList:      "BadgeList",
+  None:           "None",
+} as const;
+
+export const AppEvent = {
+  OpenPage:            "OpenPage",
+  CommGetUserList:     "CommGetUserList",
+  OpenFileUserList:    "OpenFileUserList",
+  CommUploadUserList:  "CommUploadUserList",
+} as const;
+
+
+
+
+export type AppStateType_Page = {
+  header: string,
+  page: string,
+  event: string | null,
+  lock: boolean,
+}
+
+export type AppStateType_UserList = {
+  connecting: boolean,
+  success: boolean,
+  list: {
+    userName: string,
+    userEMail: string,  
+ }[] | null
+};
+
+export type AppStateType_UserListNotApp = {
+  connecting: boolean,
+  success: boolean,
+  list: {
+    userEMail: string,
+    submittedAt: string,
+  }[] | null
+};
+
+export type AppStateType_UserListUpload = {
+  connecting: boolean,
+  success: boolean,
+  msg: string | null,
+  exp: string | null,
+};
+
+export type AppStateType_BadgeList = {
+  connecting: boolean,
+  success: boolean,
+  list: {
+    badgeClassId: string,
+    badgeName: string,
+    badgeIssuerName: string,
+    _all: number,
+  }[] | null
+};
+
+
+
+
+const AppState_Page = atom<AppStateType_Page> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_PAGE,
   default: {
-    viewPage: "UserListNone",
-    pageEvent: null,
-    reqBadgeList: false,
+    header: AppHeader.None,
+    page: AppPage.None, 
+    event: null,
+    lock: false,
   },
 });
 
-export const useAppState = () => {
-  return useRecoilState(appState);
+const AppState_UserList = atom<AppStateType_UserList> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_USERLIST,  
+  default: {
+    connecting: false,
+    success: true,
+    list: null,
+  },
+});
+
+const AppState_UserListNotApp = atom<AppStateType_UserListNotApp> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_USERLIST_NOTAPP,
+  default: {
+    connecting: false,
+    success: true,
+    list: null,
+  },
+});
+
+const AppState_UserListUpload = atom<AppStateType_UserListUpload> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_USERLIST_UPLOAD,
+  default: {
+    success: false,
+    connecting: false,
+    msg: null,
+    exp: null,
+  },
+});
+
+const AppState_BadgeList = atom<AppStateType_BadgeList> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_BADGELIST,
+  default: {
+    connecting: false,
+    success: true,
+    list: null,
+  },
+});
+
+
+
+
+export const useAppState_Page = () => {
+  return useRecoilState(AppState_Page);
 };
 
-export const useAppValue = () => {
-  return useRecoilValue(appState);
+export const useAppState_UserList = () => {
+  return useRecoilState(AppState_UserList);
 };
 
-export const useSetAppState = (updateState) => {
-  return  useSetRecoilState(appState);
+export const useAppState_UserListNotApp = () => {
+  return useRecoilState(AppState_UserListNotApp);
+};
+
+export const useAppState_UserListUpload = () => {
+  return useRecoilState(AppState_UserListUpload);
+};
+
+export const useAppState_BadgeList = () => {
+  return useRecoilState(AppState_BadgeList);
 };
 
 
-
-
-export const AppControlHeaderOnClick1 = (state) => {
-  const update = {...state};
-  update.viewPage = "UserListNone";
-  //update.viewPage = "UserList";
-  //update.pageEvent = "UserListPageOpen";
-  return update;
-};
-
-export const AppControlHeaderOnClick2 = (state) => {
-  const update = {...state};
-  update.viewPage = "BadgeList";
-  update.reqBadgeList = true;
-  return update;
-};
-
-export const AppControlUserListPageOpen = (state) => {
-  const update = {...state};
-  update.viewPage = "UserList";
-  update.pageEvent = "StartGetUserData";
-  return update;
-};
-
-export const AppControlUserListPageGetUserData = (state) => {
-  //サーバーからユーザーリストの取得を試みる（現在は実装していないため失敗する）
-  const update = {...state};
-  update.viewPage = "UserListNone";
-  update.pageEvent = null;
-  return update;
-};
-
-export const AppControlClearReqBadgeList = (state) => {
-  const update = {...state}; 
-  update.reqBadgeList = false;
-  return update; 
-};

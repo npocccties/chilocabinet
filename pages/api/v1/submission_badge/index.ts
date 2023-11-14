@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Session, withSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 const { setTimeout } = require('timers/promises');
 
@@ -8,6 +7,8 @@ import crypto from "crypto";
 import axios from "axios";
 const pngitxt = require("png-itxt");
 const Through = require("stream").PassThrough;
+
+import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 
 import { vcPayload_sample } from "@/pages/api/v1/submission_badge/debug_payload_sample";
 import { vcPayload_sample_2 } from "@/pages/api/v1/submission_badge/debug_payload_sample_2";
@@ -42,7 +43,7 @@ const openBadgeVerifierURL =
 
 
 
-export default async function handler(req: NextApiRequest & Session, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { user_email, badge_vc } = req.body;
   const userEMail: string = user_email;
@@ -51,7 +52,7 @@ export default async function handler(req: NextApiRequest & Session, res: NextAp
   let retStatus = {... retStatusInit};
 
   // for-debug
-  //await createDebugData_1();
+  await createDebugData_1();
   if(debugData.inputJwt != null) {
     vcJwt = debugData.inputJwt;
   }
@@ -60,6 +61,9 @@ export default async function handler(req: NextApiRequest & Session, res: NextAp
     retStatus = await submissionBadgeProc(userEMail, vcJwt);
   }
   catch(exp) {
+    loggerError(`API submission_badge: Unknown exception.`);
+    loggerWarn(exp);
+    console.log(`Error: API submission_badge: Unknown exception.`);
     console.log(exp);
     retStatus  = {
       fail: true,
@@ -94,6 +98,11 @@ export default async function handler(req: NextApiRequest & Session, res: NextAp
     if(retStatus.reason_msg == null) {
       retStatus.reason_msg = "success";
     }
+  }
+
+  if(retStatus.reason_code != 0) {
+    loggerError(`API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`); 
+    console.log(`Error: API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`);
   }
 
   res.status(retStatus.status_code).json({reason_code: retStatus.reason_code, reason_msg: retStatus.reason_msg});
@@ -133,36 +142,45 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
     vcPhoto = vcPayload.vc.credentialSubject.photo;    
   }
   catch(exp) {
+    loggerError(`API submission_badge: VC data parse Error, not exist data Exception.`);
+    loggerWarn(exp);
+    console.log(`Error: API submission_badge: VC data parse Error, not exist data Exception.`);
     console.log(exp);
   }
 
   if(vcSubEMail == null) {
-    return { fail:true, status_code:400, reason_code:105, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.email" };
+    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.email" };
   }
   if(vcPhoto == null) {
-    return { fail:true, status_code:400, reason_code:105, reason_msg:"no exist data, JWT Payload: exp" };
+    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: exp" };
   }
   if(vcExp == null) {
-    return { fail:true, status_code:400, reason_code:105, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.photol" };
+    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.photol" };
   }
 
   //現在時刻取得
+  const JST_OFFSET = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
   let nowTime = new Date();
+  let nowTimeJst =  new Date(nowTime.getTime() + JST_OFFSET);
 
   //有効期限チェック
   try {
     let expTime = new Date(vcExp * 1000);
     if(expTime < nowTime) {
-      console.log(`ERROR: VC expire time is over, exp:${expTime}, now:${nowTime}`);
+      loggerError(`API submission_badge: VC expire time is over, exp:${expTime}, now:${nowTime}`);
+      console.log(`Error: API submission_badge: VC expire time is over, exp:${expTime}, now:${nowTime}`);
+
       if(debugData.skipCheckVcExp == false) {
         return { fail:true, status_code:400, reason_code:103, reason_msg:"VC expire time is over." };
       }
     }
   }
   catch(exp) {
+    loggerError(`API submission_badge: VC expire time is unknown.`);
+    console.log(`Error: API submission_badge: VC expire time is unknown.`);
+    loggerWarn(exp);
     console.log(exp);
-    console.log("ERROR: VC expire time is unknown.");
-    return { fail:true, status_code:400, reason_code:104, reason_msg:"VC expire time is unknown." };
+    return { fail:true, status_code:400, reason_code:102, reason_msg:"VC expire time is unknown." };
   }
 
   //バッジデータパース
@@ -170,7 +188,7 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
   if(badgeMetaData == false) {
     retStatus.fail = true;
     retStatus.status_code = 400;
-    retStatus.reason_code = 104;
+    retStatus.reason_code = 102;
     retStatus.reason_msg = errBadgeMetaData;
     return retStatus;
   }
@@ -205,17 +223,20 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
     badgeIssName = badge.issuer.name;
   }
   catch(exp) {
+    loggerError(`API submission_badge: badge data parse Error, not exist data Exception.`);
+    console.log(`Error: API submission_badge: badge data parse Error, not exist data Exception.`);
+    loggerWarn(exp);
     console.log(exp);
   }
 
   if(badgeName == null) {
-    return { fail:true, status_code:400, reason_code:104, reason_msg:"no exist data, OpenBadge meta data: badge.name" };
+    return { fail:true, status_code:400, reason_code:102, reason_msg:"no exist data, OpenBadge meta data: badge.name" };
   }
   if(badgeClass == null) {
-    return { fail:true, status_code:400, reason_code:104, reason_msg:"no exist data, OpenBadge meta data: badge.issuer.criteria.id" };
+    return { fail:true, status_code:400, reason_code:102, reason_msg:"no exist data, OpenBadge meta data: badge.issuer.criteria.id" };
   }
   if(badgeIssName == null) {
-    return { fail:true, status_code:400, reason_code:104, reason_msg:"no exist data, OpenBadge meta data: badge.issuer.name" };
+    return { fail:true, status_code:400, reason_code:102, reason_msg:"no exist data, OpenBadge meta data: badge.issuer.name" };
   }
 
   //バッジ有効検証チェック
@@ -229,18 +250,12 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
   }
 
   //DB登録
-  await prisma.userEMails.findFirst ({
-    where: {
-      userEMail: userEMail,
-    },
-  });
-
   let newDbData;
   try {
     newDbData = await prisma.submittedBadges.create({
       data: {
         userEMail: userEMail, 
-        submittedAt: nowTime,
+        submittedAt: nowTimeJst,
         badgeName: badgeName,
         badgeClassId: badgeClass,
         badgeEMail: vcSubEMail,
@@ -251,12 +266,18 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
     });
   }
   catch(exp) {
+    loggerError(`API submission_badge: DB insert exception, to SubmittedBadges table`);
+    console.log(`Error: API submission_badge: DB insert exception, to SubmittedBadges table`);
+    loggerWarn(exp);
     console.log(exp);
   }
 
-  //console.log(newDbData);
+  console.log(newDbData);
 
   if(newDbData == false) {
+    loggerError(`API submission_badge: DB insert fail, to SubmittedBadges table`);
+    console.log(`Error: API submission_badge: DB insert fail, to SubmittedBadges table`);
+
     retStatus.fail = true;
     retStatus.status_code = 500;
     retStatus.reason_code = 200;
@@ -329,7 +350,7 @@ async function checkInputParam(userEMail: string, vcJwt: string)
   {
     retStatus.fail = true;
     retStatus.status_code = 400;
-    retStatus.reason_code = 105;
+    retStatus.reason_code = 103;
     retStatus.reason_msg = 'Error, jwt format, bad block separate.';
     return retParam;
   }
@@ -348,7 +369,7 @@ async function checkInputParam(userEMail: string, vcJwt: string)
   } catch (exceptionVar) {
     retStatus.fail = true;
     retStatus.status_code = 400;
-    retStatus.reason_code = 105;
+    retStatus.reason_code = 103;
     retStatus.reason_msg = 'Error, jwt format, cannot base64 decode.';
     console.log(exceptionVar);
     return retParam;
@@ -367,7 +388,7 @@ async function checkInputParam(userEMail: string, vcJwt: string)
   } catch (exceptionVar) {
     retStatus.fail = true;
     retStatus.status_code = 400;
-    retStatus.reason_code = 105;
+    retStatus.reason_code = 103;
     retStatus.reason_msg = 'Error, jwt format, cannot parse to json data.';
     console.log(exceptionVar);
     return retParam;
@@ -571,17 +592,14 @@ export const validateOpenBadge = async (
     .digest("hex");
 
   if (inputEmailHash !== expectedEmailHash) {
-    let msg = `Error, validateOpenBadge, email and salt unmatch, email=${email}, salt=${saltVal}`;
-    console.log(msg);
+    loggerError(`API submission_badge: email and salt unmatch, email=${email}, salt=${saltVal}`);
+    console.log(`Error: API submission_badge: email and salt unmatch, email=${email}, salt=${saltVal}`);
 
+    let msg = `Error, validateOpenBadge, email and salt unmatch, email=${email}, salt=${saltVal}`;
     if(debugData.skipCheckBadgeEMailSalt == false)
     {
       return { result: false, msg: msg };
     }
-  }
-
-  if(debugData.skipCheckBadgeMetaData == true) {
-    return {result: true, msg: "skip Validate OpenBadge, for debug."  };
   }
 
   const postProc = axios.post(
@@ -601,8 +619,14 @@ export const validateOpenBadge = async (
     retValidate = await postProc;
   }
   catch(exp) {
+    loggerError(`API submission_badge: OpenBadge validaterURL POST exception.`);
+    console.log(`Error: API submission_badge: OpenBadge validaterURL POST exception.`);
+    loggerWarn(exp);
     console.log(exp);
-    return { result: false, msg: "validateOpenBadge Fail, POST proc exception. URL = " +  openBadgeVerifierURL};
+
+    if(debugData.skipCheckBadgeMetaData == false) {
+      return { result: false, msg: "OpenBadge validater POST Fail, URL = " +  openBadgeVerifierURL};
+    }
   }
 
   //console.log(retValidate);
@@ -613,6 +637,9 @@ export const validateOpenBadge = async (
   if( retValidate != null && retValidate.data != null && retValidate.data.report != null && retValidate.data.report.valid != null) { 
     result = retValidate.data.report.valid;
     msg = JSON.stringify(retValidate.data.report);
+
+    loggerError(`API submission_badge: OpenBadge validater result, NG.`);
+    console.log(`Error: API submission_badge: OpenBadge validater result, NG.`);
   }
 
   if(result == true) {
@@ -620,6 +647,10 @@ export const validateOpenBadge = async (
   }
   else if(msg == null) {
     msg = 'validateOpenBadge Fail';
+  }
+
+  if(debugData.skipCheckBadgeMetaData == true) {
+    result = true;
   }
 
   return { result, msg };
@@ -651,6 +682,8 @@ async function createDebugData_1 ()
      "kid": "did:web:did.cccties.org#33e5ca5bf0ed40f78089c582bb17a1cfvcSigningKey-78e5b",
      "typ": "JWT"
   };
+
+  console.log(ION);
 
   let payload = vcPayload_sample_2;
   let jwtSample = await ION.signJws({ header: header, payload: payload, privateJwk: privateJwkSample });

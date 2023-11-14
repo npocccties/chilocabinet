@@ -10,5 +10,3 @@ db/
 .env.local
 .env.development
 .env.production
-.vscode/*
-!.vscode/launch.json
