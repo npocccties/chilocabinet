@@ -84,7 +84,9 @@ npx prisma studio
    * 開発サーバー：
       * ルートディレクトリで、`script/setup.sh` を実行する
       * .envの`ALLOWED_HOSTS`に記載されているドメインを、デプロイ先のドメインに設定する
-
+      * 
+1. BASIC認証ID/パスワードを設定した`.htpasswd`ファイルを`authfile/`ディレクトリに配置
+   ```
 1. デプロイ
   - 開発サーバー
     ```
