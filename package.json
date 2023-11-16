@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS=--max_old_space_size=1024 next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "eslint --fix \"pages/**/*.{ts,tsx}\" \"share/**/*.{ts,tsx}\" \"components/**/*.{ts,tsx}\"",

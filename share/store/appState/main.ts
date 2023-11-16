@@ -1,7 +1,5 @@
 import { useCallback } from "react";
 import { atom, useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
-
-import { AppState, AppStateGetters, AppStateActions } from "@/share/store/appState/types";
 import { RECOIL_ATOMS_KEYS } from "@/share/store/keys";
 
 
