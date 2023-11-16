@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let retStatus = {... retStatusInit};
 
   // for-debug
-  await createDebugData_1();
+  //await createDebugData_1();
   if(debugData.inputJwt != null) {
     vcJwt = debugData.inputJwt;
   }
