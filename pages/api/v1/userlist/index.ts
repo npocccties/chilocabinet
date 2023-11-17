@@ -69,13 +69,14 @@ async function proc_download(req, res)
   try {
     user_email = await prisma.userEMails.findMany({
       select: {
+        userID: true,
         userName: true,
         userEMail: true,
       },
       orderBy: {
-        userEMail: 'asc',
+        userID: 'asc',
       },
-      distinct: ['userEMail'],
+      distinct: ['userID'],
     });
   }
   catch(exp) {
@@ -190,21 +191,25 @@ async function proc_upload(req, res) {
     status = 400;
   }
 
-  if(success && upload.length > 10000) {
-    success = false;
-    msg =  "ERROR: Upload data array size is over, max size is 10,000.";
-    status = 400;
-  }
-
   for (i = 0; success && i < upload.length; i++) {
-    if(upload[i].name == null) {
+    if(upload[i].id == null || upload[i].id == '') {
+      success = false;
+      msg =  `ERROR: param 'id' is none, index = ${i}`;
+      status = 400;
+    }
+    else if(upload[i].name == null || upload[i].name == '') {
       success = false;
       msg =  `ERROR: param 'name' is none, index = ${i}`;
       status = 400;
     }
-    else if(upload[i].email == null) {
+    else if(upload[i].email == null || upload[i].email == '') {
       success = false;
       msg =  `ERROR: param 'email' is none, index = ${i}`;
+      status = 400;
+    }
+    else if(upload[i].id.length > 20) {
+      success = false;
+      msg =  `ERROR: id string length over, max 20, index = ${i}`;
       status = 400;
     }
     else if(upload[i].name.length > 256) {
@@ -237,6 +242,7 @@ async function proc_upload(req, res) {
 
     for (i = 0; i < upload.length; i++) {
       tabledata.push({
+        userID:    upload[i].id,
         userEMail: upload[i].email,
         userName:  upload[i].name,
         createdAt: nowTimeJst,

@@ -12,7 +12,7 @@ export const NonePage = () => {
 
   const [appStatePage, setAppStatePage] = useAppState_Page();
 
-  if ( appStatePage.page != AppPage.None ) {
+  if ( appStatePage.page != null ) {
     return ( <></> );
   }
 

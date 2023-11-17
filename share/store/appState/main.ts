@@ -10,28 +10,29 @@ export const AppPage = {
   UserListNotApp: "UserListNotApp",
   BadgeList:      "BadgeList",
   BadgeUserList:  "BadgeUserList",
-  None:           "None",
 } as const;
 
 export const AppHeader = {
   UserList:       "UserList",
   BadgeList:      "BadgeList",
-  None:           "None",
 } as const;
 
 export const AppEvent = {
-  OpenPage:            "OpenPage",
-  CommGetUserList:     "CommGetUserList",
-  OpenFileUserList:    "OpenFileUserList",
-  CommUploadUserList:  "CommUploadUserList",
+  OpenPage:             "OpenPage",
+  CommGetUserList:      "CommGetUserList",
+  OpenFileUserList:     "OpenFileUserList",
+  CommUploadUserList:   "CommUploadUserList",
+  CommGetBadgeList:     "CommGetBadgeList",
+  CommGetBadgeUserList: "CommGetBadgeUserList",
 } as const;
 
 
 
 
 export type AppStateType_Page = {
-  header: string,
-  page: string,
+  header: string | null,
+  page: string | null,
+  param: strring | null,
   event: string | null,
   lock: boolean,
 }
@@ -78,9 +79,10 @@ export type AppStateType_BadgeList = {
 const AppState_Page = atom<AppStateType_Page> ({
   key: RECOIL_ATOMS_KEYS.APPSTATE_PAGE,
   default: {
-    header: AppHeader.None,
-    page: AppPage.None, 
-    event: null,
+    header: AppHeader.UserList,
+    page: AppPage.UserList, 
+    param: null,
+    event: AppEvent.OpenPage,
     lock: false,
   },
 });

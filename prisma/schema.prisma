@@ -8,11 +8,14 @@ datasource db {
 }
 
 model UserEMails {
-  userEMail String   @id @map("user_email") @db.VarChar(256)
+  userID    String   @map("user_id") @db.VarChar(20)
+  userEMail String   @map("user_email") @db.VarChar(256)
   userName  String   @map("user_name") @db.VarChar(256)
   createdAt DateTime @map("created_at") @db.Timestamp(6)
   submittedBadgesInfo SubmittedBadges[]
 
+  @@id([userID])
+  @@unique([userEMail])
   @@map("user_emails")
 }
 

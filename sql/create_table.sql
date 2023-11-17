@@ -3,10 +3,12 @@ drop table if exists submitted_badges cascade;
 -- -----------------------------------------------------------------------------
 -- ユーザーEMail
 create table user_emails (
+    user_id varchar(20) not null,            -- ユーザーID
     user_email varchar(256) not null,        -- ユーザーEmail
     user_name varchar(256) not null,         -- ユーザ名
     created_at timestamp not null,           -- 作成日時
-    primary key(user_email)       
+    primary key(user_id),
+    unique (user_email)       
 );
 
 -- 提出済みバッジ

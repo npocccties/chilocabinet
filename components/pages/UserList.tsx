@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
-import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay } from "@chakra-ui/react";
+import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay, Spinner } from "@chakra-ui/react";
 
 import { CABINET_OPERATOR_TITLE } from "@/configs/constants";
 import {
@@ -24,18 +24,13 @@ export const UserList = () => {
   let [userListNotApp, setUserListNotApp] = useAppState_UserListNotApp();
   let [userListUpload, setUserListUpload] = useAppState_UserListUpload();
 
-  //let statePage = statePageOrg;
-  //let userList = userListOrg;
-  //let userListNotApp = userListNotAppOrg;
-  //let userListUpload = userListUploadOrg;
-
   let startComm = false;
   let pageAct = false;
 
-  console.log(statePage);
-  console.log(userList);
-  console.log(userListNotApp);
-  console.log(userListUpload);
+  //console.log(statePage);
+  //console.log(userList);
+  //console.log(userListNotApp);
+  //console.log(userListUpload);
 
   if((statePage.page == AppPage.UserList || statePage.page == AppPage.UserListNotApp) && statePage.event == AppEvent.OpenPage) {
     statePage = {...statePage, event: null };
@@ -146,10 +141,6 @@ export const UserList = () => {
         return null;
       }
       else {
-        //let arr = [];
-        //for(let i=0; i< userList.list.length; i++) {
-        //}
-        //return arr;
         return userList.list.map(o => ({...o}));
       }
     }),
@@ -179,15 +170,17 @@ export const UserList = () => {
   let showMessage = false;
   let enableUploadCsv = true;
   let messageTxt = "学習者が登録されていません";
+  let useSpinner = false;
 
   if ( statePage.page != AppPage.UserList && statePage.page != AppPage.UserListNotApp) {
     return ( <></> );
   }
 
   if( startComm || userList.connecting == true ) {
-    showMessage = true;
-    messageTxt = '＜データ取得中＞';
+    //showMessage = true;
+    //messageTxt = '＜データ取得中＞';
     enableUploadCsv = false;
+    useSpinner = true;
   }
 
   else if( userList.success == false || tableData == null ) {
@@ -232,7 +225,7 @@ export const UserList = () => {
         <Box fontWeight={"bold"} fontSize={"16px"}>
           {CABINET_OPERATOR_TITLE + "　学習者一覧"}
         </Box>
-        { showTableNotApp == true ? (<></>) : (
+        { showTable == false ? (<></>) : (
           <Box>
             <Button color={"white"}
               fontSize={"12px"}
@@ -248,6 +241,9 @@ export const UserList = () => {
             {messageTxt}
           </Box>
         )}
+        { useSpinner == false ? (<></>) :
+          <Spinner thickness='4px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
+        }
         { ((showTableNotApp == false &&
             tableDataNotApp != null &&
             tableDataNotApp.length > 0) == false) ? (<></>) : (
@@ -281,6 +277,7 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
+                  { minSize: 150, header: '職員ID', accessorKey: 'userID', enableSorting: false },
                   { minSize: 400, header: '氏名', accessorKey: 'userName', enableSorting: false },
                   { minSize: 400, header: 'Emailアドレス', accessorKey: 'userEMail', enableSorting: false },
                 ]}
@@ -405,35 +402,50 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
     return;
   }
 
-  //ファイルフォーマットチェック  
+  //Emailアドレスフォーマットチェック正規表現  
   const regstr = '^[a-zA-Z0-9_+-]+(.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*.)+[a-zA-Z]{2,}$';
 
   lines = text.split(/\r\n|\n/);
   for (let i = 0; i < lines.length && msg == null; ++i) {
     let cells = parseCsvLine(lines[i]);
     if(i == 0) {
-      if(cells.length != 2 || cells[0] != '学習者' || cells[1].toLowerCase() != 'emailアドレス') {
-         msg = `CSVファイルフォーマット異常(1行目)：1行目の項目は「学習者」「Emailアドレス」と記述してください。`;
+      if(cells.length != 3 || cells[0].toLowerCase() != '職員id' || cells[0] != '氏名' || cells[1].toLowerCase() != 'emailアドレス') {
+         msg = `CSVファイルフォーマット異常(i行目)：1行目の項目は「職員ID」「氏名」「Emailアドレス」と記述してください。`;
       }
       else {
         listArray = []; 
       }
     }
-    else if(cells.length >= 2) {
-      if(cells[0].length > 256) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'学習者'が文字数上限（256）を超えています。`;
+    else if(i + 1 == lines.length && cells.length == 1 && cells[0].match(' +')) {
+      //最終行が空文の場合何も処理しない
+    }
+    else if(cells.length >= 3) {
+      if(cells[0].match(' +')) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'職員ID'が未設定です`;
       }
-      else if(cells[1].length > 254) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'EMailアドレス'が文字数上限(254)を超えています。`;
+      else if(cells[1].match(' +')) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が未設定です`;
       }
-      else if(cells[1].match(regstr) == null) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'EMailアドレス'文字列が不正です。`; 
+      else if(cells[2].match(' +')) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'Emailアドレス'が未設定です`;
+      }
+      else if(cells[0].length > 20) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'職員ID'が文字数上限（20）を超えています。`;
+      }
+      else if(cells[1].length > 256) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が文字数上限（256）を超えています。`;
+      }
+      else if(cells[2].length > 254) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'Emailアドレス'が文字数上限(254)を超えています。`;
+      }
+      else if(cells[2].match(regstr) == null) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'Emailアドレス'文字列が不正です。`; 
       }
       else {
-        listArray.push({ name: cells[0], email: cells[1] });
+        listArray.push({ id: cells[0], name: cells[1], email: cells[2] });
       }
     } 
-    else if(i + 1 < lines.length) {
+    else {
       //最終行を除いて項目数が2個ないがある場合はエラーとする
       msg = `CSVファイルフォーマット異常(${i+1}行目)：項目が不足しています。`;
     }
