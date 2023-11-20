@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       orderBy: {
         submittedAt: 'asc',
       },
-      distinct: ['badgeEMail'],
+      distinct: ['userEMail'],
     });
 
     if(result.length >= 1) {
@@ -67,7 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           userID: o.userEMailInfo.userID,
           userName: o.userEMailInfo.userName,
           userEMail: o.userEMail,
-          submittedAt: o.submittedAt,
+          submittedAt: o.submittedAt == null ? null : o.submittedAt.toISOString(),
+          downloadedAt: o.downloadedAt == null ? null : o.downloadedAt.toISOString(), 
         };
       }
     }).filter(Boolean);
@@ -76,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if(o.userEMailInfo == null) {
         return {
           userEMail: o.userEMail,
-          submittedAt: o.submittedAt,
+          submittedAt: o.submittedAt == null ? null : o.submittedAt.toISOString(),
         };
       }
       else {
@@ -99,9 +100,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   else {
     res.status(200).json({
-      badge_name: badge_name,
+      badgeName: badge_name,
       list: badge_userlist,
-      list_notapp: badge_userlist_notapp,
+      listNotApp: badge_userlist_notapp,
       msg: null
     });
   }

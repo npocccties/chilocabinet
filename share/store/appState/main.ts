@@ -6,10 +6,11 @@ import { RECOIL_ATOMS_KEYS } from "@/share/store/keys";
 
 
 export const AppPage = { 
-  UserList:       "UserList",
-  UserListNotApp: "UserListNotApp",
-  BadgeList:      "BadgeList",
-  BadgeUserList:  "BadgeUserList",
+  UserList:             "UserList",
+  UserListNotApp:       "UserListNotApp",
+  BadgeList:            "BadgeList",
+  BadgeUserList:        "BadgeUserList",
+  BadgeUserListNotApp:  "BadgeUserListiNotApp",
 } as const;
 
 export const AppHeader = {
@@ -32,7 +33,7 @@ export const AppEvent = {
 export type AppStateType_Page = {
   header: string | null,
   page: string | null,
-  param: strring | null,
+  param: string | null,
   event: string | null,
   lock: boolean,
 }
@@ -69,7 +70,26 @@ export type AppStateType_BadgeList = {
     badgeClassId: string,
     badgeName: string,
     badgeIssuerName: string,
-    _all: number,
+    _count: {
+      userEMail: number,
+    },
+  }[] | null
+};
+
+export type AppStateType_BadgeUserList = {
+  connecting: boolean,
+  success: boolean,
+  badgeName: string,
+  list: {
+    userID: string,
+    userName: string,
+    userEMail: string,
+    submittedAt: string,
+    downloadedAt: string,
+  }[] | null,
+  listNotApp : {
+    userEMail: string,
+    submittedAt: string,
   }[] | null
 };
 
@@ -124,6 +144,17 @@ const AppState_BadgeList = atom<AppStateType_BadgeList> ({
   },
 });
 
+const AppState_BadgeUserList = atom<AppStateType_BadgeUserList> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_BADGE_USERLIST,
+  default: {
+    connecting: false,
+    success: true,
+    badgeName: null,
+    list: null,
+    listNotApp: null,
+  },
+});
+
 
 
 
@@ -147,4 +178,6 @@ export const useAppState_BadgeList = () => {
   return useRecoilState(AppState_BadgeList);
 };
 
-
+export const useAppState_BadgeUserList = () => {
+  return useRecoilState(AppState_BadgeUserList);
+};

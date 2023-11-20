@@ -27,11 +27,6 @@ export const UserList = () => {
   let startComm = false;
   let pageAct = false;
 
-  //console.log(statePage);
-  //console.log(userList);
-  //console.log(userListNotApp);
-  //console.log(userListUpload);
-
   if((statePage.page == AppPage.UserList || statePage.page == AppPage.UserListNotApp) && statePage.event == AppEvent.OpenPage) {
     statePage = {...statePage, event: null };
     pageAct = true;
@@ -154,7 +149,7 @@ export const UserList = () => {
       else {
         return userListNotApp.list.map(o => {
           let date: string = o.submittedAt;
-          date = date.split('T')[0]; 
+          date = date.split('T')[0].replaceAll('-', '/'); 
           return {userEMail: o.userEMail, submittedAt: date};
         });
       }
@@ -349,6 +344,11 @@ export const UserList = () => {
                     '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee',},
                   },
                 }}
+                muiTableBodyCellProps = {(cell) => ({
+                  sx: {
+                    'color': 'red',
+                  },
+                })}
               />
             </ThemeProvider>
           </Box>
@@ -389,9 +389,6 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
     }
   } 
 
-  console.log(handle);
-  console.log(file);
-  console.log(text);
 
   if(handle == null) {
     return;  //ユーザーによるファイル選択キャンセル
@@ -482,13 +479,9 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
     let msg = (resp.data != null && resp.data.msg != null) ? resp.data.msg : null;
     let exp = (resp.data != null && resp.data.exp != null) ? resp.data.exp : null;
 
-    console.log(msg);
-    console.log(exp);
-
     if(success == null || success == false) {
       msg = "ERROR: コンポーネント(UserList) 学習者リスト更新サーバー処理結果エラー, " + resp.data.msg;
-      //console.log(msg);
-      //console.log(exp);
+      console.log(msg);
       window.alert("学習者リストの更新に失敗しました。\n" + msg);
     }
     else {

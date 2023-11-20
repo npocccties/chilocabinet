@@ -5,10 +5,7 @@ import prisma from "@/lib/prisma";
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
   try {
-    if(req.body.type == 'for_test_1') {
-      await proc_test1(req, res); 
-    }
-    else if(req.body.type == 'download') {
+    if(req.body.type == 'download') {
       await proc_download(req, res);
     }
     else if(req.body.type == 'upload') {
@@ -22,39 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(exp);
   }
 
-  return;
-}
-
-
-
-
-async function proc_test1(req, res)
-{
-  let result_dbg;
-
-  try {
-    result_dbg = await prisma.submittedBadges.findMany({
-      where: {
-        NOT: {userEMailInfo: {userEMail: {not: ''}}},
-      },
-      select: {
-        userEMail: true,
-        submittedAt: true,
-        badgeName: true,
-        badgeClassId: true,
-        badgeEMail: true,
-        badgeIssuerName: true,
-        downloadedAt: true,
-      },
-    });
-  }
-  catch(exp) {
-    console.log(exp);
-  };
-
-  console.log(result_dbg);
-
-  res.status(200).json({ success: (result_dbg != null), reesult: result_dbg });
   return;
 }
 
@@ -82,8 +46,6 @@ async function proc_download(req, res)
   catch(exp) {
     console.log(exp);
   };
-
-  console.log(user_email);
 
   if(user_email == null) {
     res.status(200).json({
@@ -122,8 +84,6 @@ async function proc_download(req, res)
     });
     return;
   }
-
-  console.log(user_email_notapp);
 
   res.status(200).json({
     success: true,

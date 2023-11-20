@@ -23,6 +23,20 @@ export default async function handler(req, res) {
         { badgeClassId: 'asc' },
       ],
     });
+
+    for(let i=0; i<groupResult.length; i++) {
+      const emailCount = await prisma.submittedBadges.findMany({
+        select: {
+          userEMail: true,
+        },
+        where: {
+          badgeClassId: groupResult[i].badgeClassId,
+        },
+        distinct: ['userEMail'],
+      });
+
+      groupResult[i]._count.userEMail = emailCount.length;
+    }
   }
   catch(exp) {
     console.log("ERROR: API badgelist, DB access exception.")

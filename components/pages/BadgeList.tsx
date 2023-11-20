@@ -27,7 +27,7 @@ export const BadgeList = () => {
   if(statePage.page ==  AppPage.BadgeList && statePage.event == AppEvent.OpenPage) {
     pageAct = true;
     startComm = true;
-    statePage = {...statePage, event: AppEvent.CommGetBadgeList, lock: false};
+    statePage = {...statePage, event: AppEvent.CommGetBadgeList, lock: true};
     badgeList = { success: false, connecting: true, list: null };
   }
 
@@ -71,7 +71,7 @@ export const BadgeList = () => {
     })
     .catch((err) => {
       console.log("ERROR: コンポーネント(BadgeList) サーバデータ取得エラー(能力バッジ一覧情報)");
-      console.log(error);
+      console.log(err);
 
       let update = {
         list: null,
@@ -110,9 +110,11 @@ export const BadgeList = () => {
       classid = tableData[index].classid;
     }catch(exp) { //no act
     }
+ 
+    console.log(`index=${index}, classid=${classid}`);
 
     if(classid != null && statePage.page == AppPage.BadgeList && statePage.lock == false) {
-      statePage = {...statePage, page: AppPage.BadgeUserList, param: classid };
+      statePage = {...statePage, page: AppPage.BadgeUserList, event: AppEvent.OpenPage, param: classid, };
       setStatePage(statePage);
     }
   }
@@ -201,11 +203,12 @@ export const BadgeList = () => {
                       onClick_moveBadgeUserList(cell.row.id);
                     },
                     sx: {
-                      'text-decoration': 'underline',
+                      'textDecoration': 'underline',
                       'color': 'blue',
                     },
                   }
                 }}
+                enableRowSelection={true}
                 enableGlobalFilterModes
                 rowNumberMode={"original"}
                 enableDensityToggle={false}
