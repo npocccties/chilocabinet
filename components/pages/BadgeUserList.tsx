@@ -112,7 +112,7 @@ export const BadgeUserList = () => {
             submittedDate: o.submittedAt == null ? null : o.submittedAt.split('T')[0].replaceAll('-', '/'),
             downloadedAt: o.downloadedAt == null ? null : o.downloadedAt,
             downloadedDate: o.downloadedAt == null ? null : o.downloadedAt.split('T')[0].replaceAll('-', '/'),
-            downloaded: o.downloadedAt == null ? '-' : '済',
+            downloaded: o.downloadedAt == null ? '未' : '-',
           };
         });
       }
@@ -235,7 +235,7 @@ export const BadgeUserList = () => {
           </Flex>
         )}
 
-        { //戻るボタン・CSVダウンロード表示
+        { //戻るボタン CSVダウンロード表示
           (showBackButton == false) ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
             <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
@@ -282,11 +282,11 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 100, header: '職員ID', accessorKey: 'id', enableSorting: true },
-                  { minSize: 400, header: '提出者名', accessorKey: 'name', enableSorting: true },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: true },
-                  { minSize: 100, header: '提出日', accessorKey: 'submittedDate', enableSorting: true },
-                  { minSize: 100, header: 'CSVファイル出力済み', accessorKey: 'downloaded', enableSorting: true },
+                  { minSize: 100, header: '職員ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
+                  { minSize: 400, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
+                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
+                  { minSize: 100, header: 'CSVファイル出力未了', accessorKey: 'downloaded' },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableGlobalFilterModes
@@ -294,7 +294,7 @@ export const BadgeUserList = () => {
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
                 enableHiding={false}
-                enableColumnActions={false}
+                enableColumnActions={true}
                 initialState={{density: 'compact', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
@@ -325,8 +325,8 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: true },
-                  { minSize: 100, header: '提出日', accessorKey: 'submittedDate', enableSorting: true },
+                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                 ]}
                 data={tableData == null ? [] : tableDataNotApp}
                 enableGlobalFilterModes
@@ -334,7 +334,7 @@ export const BadgeUserList = () => {
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
                 enableHiding={false}
-                enableColumnActions={false}
+                enableColumnActions={true}
                 initialState={{density: 'compact', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [

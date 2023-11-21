@@ -215,7 +215,7 @@ export const BadgeList = () => {
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
                 enableHiding={false}
-                enableColumnActions={false}
+                enableColumnActions={true}
                 initialState={{density: 'compact', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [

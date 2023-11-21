@@ -314,7 +314,7 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'userEMail', enableSorting: false },
+                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'userEMail', enableColumnActions: false, enableSorting: false },
                   { minSize: 150, header: '提出日', accessorKey: 'submittedAt' },
                 ]}
                 data={tableDataNotApp == null ? [] : tableDataNotApp}
@@ -323,7 +323,7 @@ export const UserList = () => {
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
                 enableHiding={false}
-                enableColumnActions={false}
+                enableColumnActions={true}
                 initialState={{density: 'compact', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
@@ -406,14 +406,14 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
   for (let i = 0; i < lines.length && msg == null; ++i) {
     let cells = parseCsvLine(lines[i]);
     if(i == 0) {
-      if(cells.length != 3 || cells[0].toLowerCase() != '職員id' || cells[0] != '氏名' || cells[1].toLowerCase() != 'emailアドレス') {
+      if(cells.length != 3 || cells[0].toLowerCase() != '職員id' || cells[1] != '氏名' || cells[2].toLowerCase() != 'emailアドレス') {
          msg = `CSVファイルフォーマット異常(i行目)：1行目の項目は「職員ID」「氏名」「Emailアドレス」と記述してください。`;
       }
       else {
         listArray = []; 
       }
     }
-    else if(i + 1 == lines.length && cells.length == 1 && cells[0].match(' +')) {
+    else if(i + 1 == lines.length && cells.length == 1 && cells[0].match(' *')) {
       //最終行が空文の場合何も処理しない
     }
     else if(cells.length >= 3) {
@@ -443,7 +443,7 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
       }
     } 
     else {
-      //最終行を除いて項目数が2個ないがある場合はエラーとする
+      //最終行を除いて項目数が2個ない場合はエラーとする
       msg = `CSVファイルフォーマット異常(${i+1}行目)：項目が不足しています。`;
     }
   }
