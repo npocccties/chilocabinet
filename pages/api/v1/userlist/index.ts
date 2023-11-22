@@ -27,15 +27,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function proc_download(req, res)
 {
-  let user_email;
-  let user_email_notapp;
+  let userID;
+  let userIDNotApp;
   
   try {
-    user_email = await prisma.userEMails.findMany({
+    userID = await prisma.userIDs.findMany({
       select: {
         userID: true,
         userName: true,
-        userEMail: true,
       },
       orderBy: {
         userID: 'asc',
@@ -47,48 +46,49 @@ async function proc_download(req, res)
     console.log(exp);
   };
 
-  if(user_email == null) {
+  if(userID == null) {
     res.status(200).json({
       success: false,
-      user_email: null,
-      user_email_notapp: null, 
+      userID: null,
+      userIDNotApp: null, 
     });
     return;
   }
  
   try {
-    user_email_notapp = await prisma.submittedBadges.findMany({
+    userIDNotApp = await prisma.submittedBadges.findMany({
       where: {
-        NOT: {userEMailInfo: {userEMail: {not: ''}}},
+        NOT: {userIDInfo: {userID: {not: ''}}},
       },
       select: {
+        userID: true,
         userEMail: true,
         submittedAt: true,
       },
       orderBy: [
-        { userEMail: 'asc' },
+        { userID: 'asc' },
         { submittedAt: 'asc' },
       ],
-      distinct: ['userEMail'],
+      distinct: ['userID'],
     });
   }
   catch(exp) {
     console.log(exp);
   };
 
-  if(user_email_notapp == null) {
+  if(userIDNotApp == null) {
     res.status(200).json({
       success: false,
-      user_email: user_email,
-      user_email_notapp: null, 
+      userID: userID,
+      userIDNotApp: null, 
     });
     return;
   }
 
   res.status(200).json({
     success: true,
-    user_email: user_email,
-    user_email_notapp: user_email_notapp,
+    userID: userID,
+    userIDNotApp: userIDNotApp,
   });
   return;
 }
@@ -102,7 +102,7 @@ async function proc_upload(req, res) {
   let success = true;
   let msg = "success";
   let status = 200;
-  let expmsg = null;
+  let expMsg = null;
   let upload = null;
 
   console.log(req.body.upload);
@@ -110,7 +110,7 @@ async function proc_upload(req, res) {
 
   type TypeUploadData = {
     name: string,
-    email: string,
+    id: string,
   };
 
   if(req.body.upload == null) {
@@ -129,7 +129,7 @@ async function proc_upload(req, res) {
     }
   }
   catch(exp) {
-    expmsg = exp;
+    expMsg = exp;
     console.log(exp);
   }
 
@@ -162,12 +162,7 @@ async function proc_upload(req, res) {
       msg =  `ERROR: param 'name' is none, index = ${i}`;
       status = 400;
     }
-    else if(upload[i].email == null || upload[i].email == '') {
-      success = false;
-      msg =  `ERROR: param 'email' is none, index = ${i}`;
-      status = 400;
-    }
-    else if(upload[i].id.length > 20) {
+    else if(upload[i].id.length > 254) {
       success = false;
       msg =  `ERROR: id string length over, max 20, index = ${i}`;
       status = 400;
@@ -177,24 +172,11 @@ async function proc_upload(req, res) {
       msg =  `ERROR: name string length over, max 256, index = ${i}`;
       status = 400;
     }  
-    else if(upload[i].email.length > 254) {
-      success = false;
-      msg = `ERROR: email string length over, max 254, index = ${i}`;
-      status = 400;
-    }
-    else {
-      const regstr = '^[a-zA-Z0-9_+-]+(.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*.)+[a-zA-Z]{2,}$';
-      if(upload[i].email.match(regstr) == null){
-        success = false;
-        msg = `ERROR: email string format NG, index = ${i}`;
-        status = 400;
-      }
-    }
   }
 
   if(success) {
-    let db_delete;
-    let db_insert;
+    let dbDelete;
+    let dbInsert;
     let tabledata = [];
 
     const JST_OFFSET = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
@@ -203,35 +185,34 @@ async function proc_upload(req, res) {
     for (i = 0; i < upload.length; i++) {
       tabledata.push({
         userID:    upload[i].id,
-        userEMail: upload[i].email,
         userName:  upload[i].name,
         createdAt: nowTimeJst,
       });    
     }
 
-    console.log(tabledata);
+    //console.log(tabledata);
 
     try {
-      [db_delete, db_insert] = await prisma.$transaction([
-        prisma.userEMails.deleteMany({}),
-        prisma.userEMails.createMany({data: tabledata}),
+      [dbDelete, dbInsert] = await prisma.$transaction([
+        prisma.userIDs.deleteMany({}),
+        prisma.userIDs.createMany({data: tabledata}),
       ]);
 
-      console.log(db_delete);
-      console.log(db_insert);
+      //console.log(dbDelete);
+      //console.log(dbInsert);
     }
     catch(exp) {
       success = false;
-      msg = "ERROR: Upload UserEMail data, DB Fail. Exception.";
-      expmsg = exp;
+      msg = "ERROR: Upload UserID data, DB Fail. Exception.";
+      expMsg = exp;
       status = 500;
       console.log(msg);
       console.log(exp);
     }
 
-    if(success && (db_delete == null || db_insert == null)) {
+    if(success && (dbDelete == null || dbInsert == null)) {
       success = false;
-      msg = "ERROR: Upload UserEMail data, DB Fail.";
+      msg = "ERROR: Upload UserID data, DB Fail.";
       status = 500;
       console.log(msg);
     }
@@ -244,7 +225,7 @@ async function proc_upload(req, res) {
   res.status(status).json({
     success: success,
     msg: msg,
-    exp: expmsg,
+    exp: expMsg,
   });
 
   return;

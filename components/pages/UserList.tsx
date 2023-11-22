@@ -95,39 +95,39 @@ export const UserList = () => {
 
     axios.post<any>('/api/v1/userlist', formdata, headerdata)
     .then((resp) => {
-      const user_email = (resp.data == null ? null : resp.data.user_email);
-      const user_email_notapp = (resp.data == null ? null : resp.data.user_email_notapp);
-      if(user_email == null || user_email_notapp == null) {
+      const userID = (resp.data == null ? null : resp.data.userID);
+      const userIDNotApp = (resp.data == null ? null : resp.data.userIDNotApp);
+      if(userID == null || userIDNotApp == null) {
         console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報) 受信データ欠損");
         console.log(resp);
       }
 
-      const updateUserEMail = {
-        list: user_email,
+      const updateUserID = {
+        list: userID,
         connecting: false,
-        success: (user_email != null),  
+        success: (userID != null),  
       };
 
-      const updateUserEMailNotApp = {
-        list: user_email_notapp,
+      const updateUserIDNotApp = {
+        list: userIDNotApp,
         connecting: false,
-        success: (user_email_notapp != null),
+        success: (userIDNotApp != null),
       };
 
-      setUserList(updateUserEMail);
-      setUserListNotApp(updateUserEMailNotApp);
+      setUserList(updateUserID);
+      setUserListNotApp(updateUserIDNotApp);
     })
     .catch((error) => {
       console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報)");
       console.log(error);
-      const updateUserEMail = {
+      const updateUserID = {
         list: null,
         connecting: false,
         success: false,
       };
 
-      setUserList(updateUserEMail);
-      setUserListNotApp(updateUserEMail);
+      setUserList(updateUserID);
+      setUserListNotApp(updateUserID);
     })
   } 
 
@@ -150,7 +150,7 @@ export const UserList = () => {
         return userListNotApp.list.map(o => {
           let date: string = o.submittedAt;
           date = date.split('T')[0].replaceAll('-', '/'); 
-          return {userEMail: o.userEMail, submittedAt: date};
+          return {userEMail: o.userEMail, userID: o.userID, submittedAt: date};
         });
       }
     },
@@ -202,7 +202,7 @@ export const UserList = () => {
 
   const onClickUpload = () => {
     if(enableUploadCsv) {
-      uploadEMailListCsv(statePage, setStatePage, userListUpload, setUserListUpload);
+      uploadIDListCsv(statePage, setStatePage, userListUpload, setUserListUpload);
     }
   }
 
@@ -227,17 +227,17 @@ export const UserList = () => {
               backgroundColor={enableUploadCsv ? "teal" : "gray"}
               onClick={onClickUpload}
             >
-              emailリストアップロード
+              学習者リストアップロード
             </Button>
           </Box>
         )}
         { showMessage == false ? (<></>) : (
-          <Box fontWeight={"bold"} fontSize={"16px"}>
+          <Box m={[10,100]} fontWeight={"bold"} fontSize={"16px"}>
             {messageTxt}
           </Box>
         )}
         { useSpinner == false ? (<></>) :
-          <Spinner thickness='4px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
+          <Spinner m={[10,100]} thickness='4px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
         }
         { ((showTableNotApp == false &&
             tableDataNotApp != null &&
@@ -272,9 +272,8 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 150, header: '職員ID', accessorKey: 'userID', enableSorting: false },
+                  { minSize: 150, header: 'ID', accessorKey: 'userID', enableSorting: false },
                   { minSize: 400, header: '氏名', accessorKey: 'userName', enableSorting: false },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'userEMail', enableSorting: false },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableRowNumbers
@@ -314,6 +313,7 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
+                  { minSize: 400, header: 'ID', accessorKey: 'userID', enableColumnActions: false, enableSorting: false },
                   { minSize: 400, header: 'Emailアドレス', accessorKey: 'userEMail', enableColumnActions: false, enableSorting: false },
                   { minSize: 150, header: '提出日', accessorKey: 'submittedAt' },
                 ]}
@@ -361,7 +361,7 @@ export const UserList = () => {
 
 
 
-async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUserListUpload)
+async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserListUpload)
 {
   const checkYes = window.confirm(
     "学習者一覧をCSVファイルから登録します。" +
@@ -373,7 +373,7 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
   let file = null;
   let text = null;
   let lines = null;
-  let listArray = null;
+  let listArray = [];
   let msg = null;
 
   if(checkYes) {
@@ -400,46 +400,44 @@ async function uploadEMailListCsv(statePage, setStatePage, userListUpload, setUs
   }
 
   //Emailアドレスフォーマットチェック正規表現  
-  const regstr = '^[a-zA-Z0-9_+-]+(.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*.)+[a-zA-Z]{2,}$';
+  //const regstr = '^[a-zA-Z0-9_+-]+(.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*.)+[a-zA-Z]{2,}$';
 
   lines = text.split(/\r\n|\n/);
   for (let i = 0; i < lines.length && msg == null; ++i) {
+
     let cells = parseCsvLine(lines[i]);
-    if(i == 0) {
-      if(cells.length != 3 || cells[0].toLowerCase() != '職員id' || cells[1] != '氏名' || cells[2].toLowerCase() != 'emailアドレス') {
-         msg = `CSVファイルフォーマット異常(i行目)：1行目の項目は「職員ID」「氏名」「Emailアドレス」と記述してください。`;
-      }
-      else {
-        listArray = []; 
-      }
-    }
-    else if(i + 1 == lines.length && cells.length == 1 && cells[0].match(' *')) {
+
+    if(i + 1 == lines.length && cells.length == 1 && cells[0].match(' *')) {
       //最終行が空文の場合何も処理しない
     }
-    else if(cells.length >= 3) {
+    else if(cells.length >= 2) {
       if(cells[0].match(' +')) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'職員ID'が未設定です`;
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'ID'が未設定です`;
       }
       else if(cells[1].match(' +')) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が未設定です`;
       }
-      else if(cells[2].match(' +')) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'Emailアドレス'が未設定です`;
-      }
       else if(cells[0].length > 20) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'職員ID'が文字数上限（20）を超えています。`;
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：'ID'が文字数上限（254）を超えています。`;
       }
       else if(cells[1].length > 256) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が文字数上限（256）を超えています。`;
       }
-      else if(cells[2].length > 254) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'Emailアドレス'が文字数上限(254)を超えています。`;
-      }
-      else if(cells[2].match(regstr) == null) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：'Emailアドレス'文字列が不正です。`; 
-      }
       else {
-        listArray.push({ id: cells[0], name: cells[1], email: cells[2] });
+        let checkline = 0;
+        while(true) {
+          if(checkline >= listArray.length) {
+            listArray.push({ id: cells[0], name: cells[1] });
+            break;
+          }
+          else if(listArray[checkline].id == cells[0]){
+            msg = `CSVファイルフォーマット異常(${checkline+1}行目, ${i+1}行目)：'ID'が重複しています。`;
+            break;
+          }
+          else {
+            checkline++;
+          }
+        }
       }
     } 
     else {

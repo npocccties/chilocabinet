@@ -27,6 +27,7 @@ const retStatusInit = {
   reason_msg: null,
 }
 
+//デバッグ用データ
 var debugData = {
   inputJwt: null,
   privateKey: null,
@@ -45,7 +46,8 @@ const openBadgeVerifierURL =
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
-  const { user_email, badge_vc } = req.body;
+  const { user_id, user_email, badge_vc } = req.body;
+  const userID: string = ((user_id == null) ? user_email : user_id);
   const userEMail: string = user_email;
   let vcJwt: string = badge_vc;
  
@@ -58,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    retStatus = await submissionBadgeProc(userEMail, vcJwt);
+    retStatus = await submissionBadgeProc(userID, userEMail, vcJwt);
   }
   catch(exp) {
     loggerError(`API submission_badge: Unknown exception.`);
@@ -113,17 +115,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
 //バッジ提出受け入れ処理
-async function submissionBadgeProc(userEMail: string, vcJwt: string)
+async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
 {
-  let { retStatus, vcHeader, vcPayload, vcSignBin } = await checkInputParam(userEMail, vcJwt);
+  //入力パラメータチェック
+  let { retStatus, vcHeader, vcPayload, vcSignBin } = await checkInputParam(userID, userEMail, vcJwt);
 
   if(retStatus.fail == true) {
     return retStatus;
   }
-
-  //const vcPayload = JSON.stringify(jwtPayload);
-  //const badgeBinaryBase64 = vcPayload.credentialSubject.photo;
-  //const vcExpire = vcPayload.exp;  
 
   //VC署名チェック
   retStatus = await checkValidationVc(vcHeader, vcPayload, vcJwt);
@@ -132,10 +131,9 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
   }
 
   //VCデータパース
-  let vcSubEMail; 
-  let vcPhoto;
-  // let vcPhotoBin;
-  let vcExp;
+  let vcSubEMail;   //VC内, OpenBadge対象EMail, OpenBadge検証に使用
+  let vcPhoto;      //VC内, OpenBadge画像データ, iTxt領域にメタデータを含む
+  let vcExp;        //VC有効期限
   try {
     vcSubEMail = vcPayload.vc.credentialSubject.email;
     vcExp = vcPayload.exp;
@@ -193,8 +191,6 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
     return retStatus;
   }
 
-  //console.log(badgeMetaData);
-
   let badgeName;
   let badgeClass;
   let badgeIssName;
@@ -202,6 +198,7 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
     let badge = badgeMetaData.badge;
 
     if(typeof(badgeMetaData.badge) === 'string' && badgeMetaData.badge.startsWith('http')) {
+      //Badge情報をメタデータ埋め込みURLから取得
       await axios.get<any>(badgeMetaData.badge)
       .then((resp) => {
         //console.log(resp.data);
@@ -213,6 +210,7 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
     badgeClass = badge.id;
 
     if(typeof(badge.issuer) === 'string' && badge.issuer.startsWith('http')) {
+      //Issure情報をメタデータ埋め込みURLから取得
       await axios.get<any>(badge.issuer)
       .then((resp) => {
         //console.log(resp.data);
@@ -254,6 +252,7 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
   try {
     newDbData = await prisma.submittedBadges.create({
       data: {
+        userID: userID,
         userEMail: userEMail, 
         submittedAt: nowTimeJst,
         badgeName: badgeName,
@@ -296,7 +295,7 @@ async function submissionBadgeProc(userEMail: string, vcJwt: string)
 
 
 //入力パラメータチェック・BASE64デコード
-async function checkInputParam(userEMail: string, vcJwt: string)
+async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
 {
   let retStatus = {... retStatusInit};
   let retParam = {
@@ -305,6 +304,15 @@ async function checkInputParam(userEMail: string, vcJwt: string)
     vcPayload: null,
     vcSignBin: null,
   };
+
+   //パラメータ存在チェック
+   if(userID == null || userID == '') {
+     retStatus.fail = true;
+     retStatus.status_code = 400;
+     retStatus.reason_code = 100;
+     retStatus.reason_msg = 'Error, Param user_id is none.';
+     return retParam;
+   }
 
   //パラメータ存在チェック
   if(userEMail == null || userEMail == '') {
@@ -324,20 +332,18 @@ async function checkInputParam(userEMail: string, vcJwt: string)
     return retParam;
   }
 
-  //提出EMail存在チェック
-  const findEMail = await prisma.userEMails.findFirst ({
+  //提出ID存在チェック
+  const findID = await prisma.userIDs.findFirst ({
     where: {
-      userEMail: userEMail,
+      userID: userID,
     },
   });
 
-  //console.log(findEMail);
-
-  if(!findEMail){
+  if(!findID){
     retStatus.fail = true;
     retStatus.status_code = 400;
     retStatus.reason_code = 101;
-    retStatus.reason_msg = 'Error, unknown user_email.';
+    retStatus.reason_msg = 'Error, unknown user_id.';
     return retParam;
   };
 
@@ -375,9 +381,6 @@ async function checkInputParam(userEMail: string, vcJwt: string)
     return retParam;
   };
 
-  //console.log(vcHeaderStr);
-  //console.log(vcPayloadStr);
-
   //JSONコードにパース
   let vcHeader = null;
   let vcPayload = null;
@@ -393,9 +396,6 @@ async function checkInputParam(userEMail: string, vcJwt: string)
     console.log(exceptionVar);
     return retParam;
   };
-
-  //console.log(vcHeader);
-  //console.log(vcPayload);
 
   //パラメータチェック・パース完了
   retParam = {
@@ -637,9 +637,6 @@ export const validateOpenBadge = async (
   if( retValidate != null && retValidate.data != null && retValidate.data.report != null && retValidate.data.report.valid != null) { 
     result = retValidate.data.report.valid;
     msg = JSON.stringify(retValidate.data.report);
-
-    loggerError(`API submission_badge: OpenBadge validater result, NG.`);
-    console.log(`Error: API submission_badge: OpenBadge validater result, NG.`);
   }
 
   if(result == true) {
@@ -647,6 +644,9 @@ export const validateOpenBadge = async (
   }
   else if(msg == null) {
     msg = 'validateOpenBadge Fail';
+
+    loggerError(`API submission_badge: OpenBadge validater result, NG.`);
+    console.log(`Error: API submission_badge: OpenBadge validater result, NG.`);
   }
 
   if(debugData.skipCheckBadgeMetaData == true) {
@@ -683,7 +683,7 @@ async function createDebugData_1 ()
      "typ": "JWT"
   };
 
-  console.log(ION);
+  //console.log(ION);
 
   let payload = vcPayload_sample_2;
   let jwtSample = await ION.signJws({ header: header, payload: payload, privateJwk: privateJwkSample });

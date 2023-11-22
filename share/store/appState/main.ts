@@ -43,7 +43,7 @@ export type AppStateType_UserList = {
   success: boolean,
   list: {
     userName: string,
-    userEMail: string,  
+    userID: string,  
  }[] | null
 };
 
@@ -51,6 +51,7 @@ export type AppStateType_UserListNotApp = {
   connecting: boolean,
   success: boolean,
   list: {
+    userID: string,
     userEMail: string,
     submittedAt: string,
   }[] | null
@@ -71,7 +72,7 @@ export type AppStateType_BadgeList = {
     badgeName: string,
     badgeIssuerName: string,
     _count: {
-      userEMail: number,
+      userID: number,
     },
   }[] | null
 };

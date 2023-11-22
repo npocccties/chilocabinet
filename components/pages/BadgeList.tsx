@@ -92,7 +92,7 @@ export const BadgeList = () => {
           return {
             name: o.badgeName,
             issuer: o.badgeIssuerName,
-            count: ((o._count == null) ? null : o._count.userEMail),
+            count: ((o._count == null) ? null : o._count.userID),
             classid: o.badgeClassId,
           };
         });
@@ -153,13 +153,13 @@ export const BadgeList = () => {
         <Box fontWeight={"bold"} fontSize={"16px"}>
           能力バッジ一覧
         </Box>
-        { messageTxt == false ? (<></>) : (
-          <Box fontWeight={"bold"} fontSize={"16px"}>
+        { messageTxt == null ? (<></>) : (
+          <Box m={[10,100]} fontWeight={"bold"} fontSize={"16px"}>
             {messageTxt}
           </Box>
         )}
         { useSpinner == false ? (<></>) :
-          <Spinner thickness='4px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
+          <Spinner m={[10,100]} thickness='4px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
         }
         { showTable == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>

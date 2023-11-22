@@ -1,16 +1,16 @@
 import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
 
-import { UserEMails_Test_1, SubmittedBadges_Test_1 } from "./testdata/testdata_1";
+import { UserIDs_Test_1, SubmittedBadges_Test_1 } from "./testdata/testdata_1";
 
 const prisma = new PrismaClient();
 
 async function main() {
 
-  const userlist = UserEMails_Test_1;
+  const userlist = UserIDs_Test_1;
   const badgelist = SubmittedBadges_Test_1;
 
-  await prisma.userEMails.createMany({
+  await prisma.userIDs.createMany({
      data: userlist,
   });
 

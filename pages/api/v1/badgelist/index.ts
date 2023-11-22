@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       ],
       _count: {
         _all: true,
-        userEMail: true,      
+        userID: true,      
       },
       orderBy: [
         { badgeIssuerName: 'asc' },
@@ -25,17 +25,17 @@ export default async function handler(req, res) {
     });
 
     for(let i=0; i<groupResult.length; i++) {
-      const emailCount = await prisma.submittedBadges.findMany({
+      const idCount = await prisma.submittedBadges.findMany({
         select: {
-          userEMail: true,
+          userID: true,
         },
         where: {
           badgeClassId: groupResult[i].badgeClassId,
         },
-        distinct: ['userEMail'],
+        distinct: ['userID'],
       });
 
-      groupResult[i]._count.userEMail = emailCount.length;
+      groupResult[i]._count.userID = idCount.length;
     }
   }
   catch(exp) {

@@ -127,7 +127,7 @@ export const BadgeUserList = () => {
       else {
         return badgeUserList.listNotApp.map(o => {
           return {
-            mail: o.userEMail,
+            id: o.userID,
             submittedAt: o.submittedAt == null ? null : o.submittedAt,
             submittedDate: o.submittedAt == null ? null : o.submittedAt.split('T')[0].replaceAll('-', '/'),
           };
@@ -272,7 +272,7 @@ export const BadgeUserList = () => {
 
         { //メッセージ表示（データがありませんなど）
           messageTxt == null ? (<></>) : (
-          <Box fontWeight={"bold"} fontSize={"16px"}>
+          <Box m={[10,100]} fontWeight={"bold"} fontSize={"16px"}>
             {messageTxt}
           </Box>
         )}
@@ -282,7 +282,7 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 100, header: '職員ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
+                  { minSize: 100, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
                   { minSize: 400, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
                   { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
@@ -325,7 +325,7 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 400, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                 ]}
                 data={tableData == null ? [] : tableDataNotApp}

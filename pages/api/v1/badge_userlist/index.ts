@@ -4,23 +4,23 @@ import prisma from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
-  let badge_class_id = null;
-  let badge_name = null;
-  let badge_userlist = null;
-  let badge_userlist_notapp = null;
+  let badgeClassID = null;
+  let badgeName = null;
+  let badgeUserList = null;
+  let badgeUserListNoApp = null;
 
   try{
-    badge_class_id = req.body.badge_class_id;
+     badgeClassID= req.body.badge_class_id;
   }
   catch(exp) {
     //no act
   }
 
-  if(badge_class_id == null) {
+  if(badgeClassID == null) {
     res.status(400).json({
       list: null,
-      list_notapp: null,
-      badge_name: null,
+      listNotApp: null,
+      badgeName: null,
       msg: "ERROR: No param, Badge classID."
     });
     return;
@@ -29,43 +29,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const result = await prisma.submittedBadges.findMany({
       select: {
+        userID: true,
         badgeName: true,
         userEMail: true,
         submittedAt: true,
         downloadedAt: true,
-        userEMailInfo: true,
+        userIDInfo: true,
       },
       where: {
-        badgeClassId: badge_class_id,
+        badgeClassId: badgeClassID,
       },
       orderBy: {
         submittedAt: 'asc',
       },
-      distinct: ['userEMail'],
+      distinct: ['userID'],
     });
 
     if(result.length >= 1) {
-      badge_name = result[0].badgeName;
+      badgeName = result[0].badgeName;
     }
 
-    if(badge_name == null) {
+    if(badgeName == null) {
       res.status(400).json({
         list: null,
-        list_notapp: null,
-        badge_name: null,
+        listNotApp: null,
+        badgeName: null,
         msg: "ERROR: Missing badge specified."
       });
       return;
     }
 
-    badge_userlist = result.map( o => {
-      if(o.userEMailInfo == null) {
+    badgeUserList = result.map( o => {
+      if(o.userIDInfo == null) {
         return null;
       }
       else {
         return {
-          userID: o.userEMailInfo.userID,
-          userName: o.userEMailInfo.userName,
+          userID: o.userID,
+          userName: o.userIDInfo.userName,
           userEMail: o.userEMail,
           submittedAt: o.submittedAt == null ? null : o.submittedAt.toISOString(),
           downloadedAt: o.downloadedAt == null ? null : o.downloadedAt.toISOString(), 
@@ -73,10 +74,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }).filter(Boolean);
 
-    badge_userlist_notapp = result.map( o => {
-      if(o.userEMailInfo == null) {
+    badgeUserListNoApp = result.map( o => {
+      if(o.userIDInfo == null) {
         return {
-          userEMail: o.userEMail,
+          userID: o.userID,
           submittedAt: o.submittedAt == null ? null : o.submittedAt.toISOString(),
         };
       }
@@ -86,23 +87,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }).filter(Boolean);
   }
   catch(exp) {
-    console.log("ERROR: API badge_userlist, DB access fail.");
+    console.log("ERROR: API badgeUserList, DB access fail.");
     console.log(exp);
   };
 
-  if(badge_name == null || badge_userlist == null || badge_userlist_notapp == null) {
+  if(badgeName == null || badgeUserList == null || badgeUserListNoApp == null) {
     res.status(500).json({
-      list: badge_userlist,
-      list_notapp: badge_userlist_notapp,
-      badge_name: badge_name,
+      list: badgeUserList,
+      listNotApp: badgeUserListNoApp,
+      badgeName: badgeName,
       msg: "ERROR: DB access fail."
     });
   }
   else {
     res.status(200).json({
-      badgeName: badge_name,
-      list: badge_userlist,
-      listNotApp: badge_userlist_notapp,
+      badgeName: badgeName,
+      list: badgeUserList,
+      listNotApp: badgeUserListNoApp,
       msg: null
     });
   }
