@@ -10,7 +10,7 @@ async function main() {
   const userlist = UserIDs_Test_1;
   const badgelist = SubmittedBadges_Test_1;
 
-  await prisma.userIDs.createMany({
+  await prisma.users.createMany({
      data: userlist,
   });
 

@@ -286,7 +286,7 @@ export const BadgeUserList = () => {
                   { minSize: 400, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
                   { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
-                  { minSize: 100, header: 'CSVファイル出力未了', accessorKey: 'downloaded' },
+                  { minSize: 100, header: 'CSVファイル未出力', accessorKey: 'downloaded' },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableGlobalFilterModes

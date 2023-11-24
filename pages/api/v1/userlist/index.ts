@@ -31,7 +31,7 @@ async function proc_download(req, res)
   let userIDNotApp;
   
   try {
-    userID = await prisma.userIDs.findMany({
+    userID = await prisma.users.findMany({
       select: {
         userID: true,
         userName: true,
@@ -194,8 +194,8 @@ async function proc_upload(req, res) {
 
     try {
       [dbDelete, dbInsert] = await prisma.$transaction([
-        prisma.userIDs.deleteMany({}),
-        prisma.userIDs.createMany({data: tabledata}),
+        prisma.users.deleteMany({}),
+        prisma.users.createMany({data: tabledata}),
       ]);
 
       //console.log(dbDelete);

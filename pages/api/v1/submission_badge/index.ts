@@ -194,6 +194,8 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
   let badgeName;
   let badgeClass;
   let badgeIssName;
+  let badgeDescription;
+
   try {
     let badge = badgeMetaData.badge;
 
@@ -208,6 +210,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
 
     badgeName =  badge.name;
     badgeClass = badge.id;
+    badgeDescription = badge.description;
 
     if(typeof(badge.issuer) === 'string' && badge.issuer.startsWith('http')) {
       //Issure情報をメタデータ埋め込みURLから取得
@@ -247,22 +250,44 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
     return retStatus;
   }
 
+  let issuedOnTime;
+  try{
+    issuedOnTime = new Date(badgeMetaData.issuedOn);
+
+    console.log(badgeMetaData.issuedOn);
+    console.log(issuedOnTime);
+  }
+  catch(exp) { // no act
+  }
+
   //DB登録
   let newDbData;
   try {
-    newDbData = await prisma.submittedBadges.create({
-      data: {
-        userID: userID,
-        userEMail: userEMail, 
-        submittedAt: nowTimeJst,
-        badgeName: badgeName,
-        badgeClassId: badgeClass,
-        badgeEMail: vcSubEMail,
-        badgeIssuerName: badgeIssName,
-        badgeData: Buffer.from(vcPhoto, "base64"), 
-        downloadedAt: null,
-      },
-    });
+    const [dbResult1, dbResult2] = await prisma.$transaction([
+      prisma.submittedBadges.deleteMany({
+        where: {
+          userID: userID,
+          badgeClassId: badgeClass,
+        }
+      }),
+      prisma.submittedBadges.create({
+        data: {
+          userID: userID,
+          userEMail: userEMail,
+          submittedAt: nowTimeJst,
+          badgeName: badgeName,
+          badgeClassId: badgeClass,
+          badgeEMail: vcSubEMail,
+          badgeIssuerName: badgeIssName,
+          badgeDescription: badgeDescription,
+          badgeIssuedOn: issuedOnTime,
+          badgeData: Buffer.from(vcPhoto, "base64"),
+          downloadedAt: null,
+        },
+      }),
+    ]);
+
+    newDbData = dbResult2;
   }
   catch(exp) {
     loggerError(`API submission_badge: DB insert exception, to SubmittedBadges table`);
@@ -270,8 +295,6 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
     loggerWarn(exp);
     console.log(exp);
   }
-
-  console.log(newDbData);
 
   if(newDbData == false) {
     loggerError(`API submission_badge: DB insert fail, to SubmittedBadges table`);
@@ -333,7 +356,7 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
   }
 
   //提出ID存在チェック
-  const findID = await prisma.userIDs.findFirst ({
+  const findID = await prisma.users.findFirst ({
     where: {
       userID: userID,
     },

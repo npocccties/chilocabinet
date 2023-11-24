@@ -19,6 +19,11 @@ paths:
         - submission_badge
       description: キャビネットにバッジを提出する
       parameters:
+        - name: user_id
+          description: user id
+          required: true
+          schema:
+            type: string
         - name: user_email
           description: user email address
           required: true

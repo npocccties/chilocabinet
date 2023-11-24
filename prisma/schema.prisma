@@ -7,27 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserIDs {
-  userID    String   @map("user_id") @db.VarChar(20)
+model Users {
+  userID    String   @map("external_linkage_id") @db.VarChar(256)
   userName  String   @map("user_name") @db.VarChar(256)
   createdAt DateTime @map("created_at") @db.Timestamp(6)
   submittedBadgesInfo SubmittedBadges[]
 
   @@id([userID])
-  @@map("user_ids")
+  @@map("users")
 }
 
 model SubmittedBadges {
-  userID          String      @map("user_id") @db.VarChar(256)
-  userEMail       String      @map("user_email") @db.VarChar(256)
-  submittedAt     DateTime    @map("submitted_at") @db.Timestamp(6)
-  badgeName       String      @map("badge_name") @db.VarChar(256)
-  badgeClassId    String      @map("badge_class_id")
-  badgeEMail      String      @map("badge_email") @db.VarChar(256)
-  badgeIssuerName String      @map("badge_issuer_name") @db.VarChar(256)
-  badgeData       Bytes       @map("badge_data")
-  downloadedAt    DateTime?   @map("downloaded_at") @db.Timestamp(6)
-  userIDInfo      UserIDs?    @relation(fields: [userID], references: [userID], onDelete: NoAction, onUpdate: NoAction)
+  userID           String       @map("external_linkage_id") @db.VarChar(256)
+  userEMail        String       @map("user_email") @db.VarChar(256)
+  submittedAt      DateTime     @map("submitted_at") @db.Timestamp(6)
+  badgeName        String       @map("badge_name") @db.VarChar(256)
+  badgeClassId     String       @map("badge_class_id")
+  badgeEMail       String       @map("badge_email") @db.VarChar(256)
+  badgeIssuerName  String       @map("badge_issuer_name") @db.VarChar(256)
+  badgeDescription String?      @map("badge_description") 
+  badgeData        Bytes        @map("badge_data")
+  badgeIssuedOn    DateTime?    @map("badge_issued_on") @db.Timestamp(6)
+  downloadedAt     DateTime?    @map("downloaded_at") @db.Timestamp(6)
+  userIDInfo       Users?       @relation(fields: [userID], references: [userID], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([userID, submittedAt, badgeClassId])
   @@index([badgeName])
