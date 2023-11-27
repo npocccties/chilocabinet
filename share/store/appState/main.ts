@@ -89,6 +89,7 @@ export type AppStateType_BadgeUserList = {
     downloadedAt: string,
   }[] | null,
   listNotApp : {
+    userID: string,
     userEMail: string,
     submittedAt: string,
   }[] | null

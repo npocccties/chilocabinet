@@ -105,8 +105,8 @@ async function proc_upload(req, res) {
   let expMsg = null;
   let upload = null;
 
-  console.log(req.body.upload);
-  console.log("start proc_upload");
+  //console.log(req.body.upload);
+  //console.log("start proc_upload");
 
   type TypeUploadData = {
     name: string,

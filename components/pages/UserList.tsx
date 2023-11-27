@@ -424,18 +424,14 @@ async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserL
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が文字数上限（256）を超えています。`;
       }
       else {
-        let checkline = 0;
-        while(true) {
-          if(checkline >= listArray.length) {
+        for(let checkline=0; checkline<=listArray.length; checkline++) {
+          if(checkline == listArray.length) {
             listArray.push({ id: cells[0], name: cells[1] });
             break;
           }
           else if(listArray[checkline].id == cells[0]){
             msg = `CSVファイルフォーマット異常(${checkline+1}行目, ${i+1}行目)：'ID'が重複しています。`;
             break;
-          }
-          else {
-            checkline++;
           }
         }
       }

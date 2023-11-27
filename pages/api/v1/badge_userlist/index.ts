@@ -4,27 +4,74 @@ import prisma from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
-  let badgeClassID = null;
-  let badgeName = null;
-  let badgeUserList = null;
-  let badgeUserListNoApp = null;
+  let badgeClassID;
+  let exportFlg;
+  let msg;
 
-  try{
-     badgeClassID= req.body.badge_class_id;
+  try {
+    if(req.body.badge_class_id == null) {
+      msg = "ERROR: param Badge classID is none.";
+      console.log("ERROR: API badgeUserList, param Badge classID is none.");
+    }
+
+    exportFlg = (req.body.export == true);
+    badgeClassID = req.body.badge_class_id;
+
+    if( (badgeClassID == null) ||
+        (exportFlg == false && typeof(badgeClassID) != 'string') ||
+        (exportFlg == true && Array.isArray(badgeClassID) == false) ||
+        (exportFlg == true && badgeClassID.length == 0)
+    ) {
+      badgeClassID = null;
+    }
+    else if(exportFlg == true) {
+      for(let i=0; i < badgeClassID.length; i++) {
+        if(typeof(badgeClassID[i]) != 'string') {
+          badgeClassID = null;
+          break;
+        }
+      }
+    }
+
+    if(badgeClassID == null && msg == null) {
+      msg = "ERROR: cannot parse, Badge classID.";
+      console.log("ERROR: API badgeUserList, cannot parese, Badge classID.");
+    }
   }
   catch(exp) {
-    //no act
+    msg = "ERROR: cannot parese, Badge classID.";
+    console.log("ERROR: API badgeUserList, cannot parese, Badge classID. Exception.");
+    console.log(exp)
   }
 
-  if(badgeClassID == null) {
+  if(msg != null) {
     res.status(400).json({
       list: null,
       listNotApp: null,
-      badgeName: null,
-      msg: "ERROR: No param, Badge classID."
+      exportData: null,
+      msg: msg,
     });
     return;
   }
+
+  if(exportFlg) {
+    exportCsvBadgeUserList(badgeClassID, res);
+  }
+  else {
+    getBadgeUserList(badgeClassID, res);
+  }
+
+  return;
+}
+
+
+
+
+async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
+{
+  let badgeName = null;
+  let badgeUserList = null;
+  let badgeUserListNoApp = null;
 
   try {
     const result = await prisma.submittedBadges.findMany({
@@ -40,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         badgeClassId: badgeClassID,
       },
       orderBy: {
-        submittedAt: 'asc',
+        submittedAt: 'desc',
       },
       distinct: ['userID'],
     });
@@ -69,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           userName: o.userIDInfo.userName,
           userEMail: o.userEMail,
           submittedAt: o.submittedAt == null ? null : o.submittedAt.toISOString(),
-          downloadedAt: o.downloadedAt == null ? null : o.downloadedAt.toISOString(), 
+          downloadedAt: o.downloadedAt == null ? null : o.downloadedAt.toISOString(),
         };
       }
     }).filter(Boolean);
@@ -108,6 +155,97 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  return;
+  return;  
 }
 
+
+
+
+async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiResponse)
+{
+  //現在時刻取得
+  const JST_OFFSET = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
+  const  nowTime = new Date();
+  const nowTimeJst =  new Date(nowTime.getTime() + JST_OFFSET);
+
+  let output = [];
+  let exp;
+  let ng = false;
+
+  try {
+    let dbResult1;
+    let dbResult2;
+
+    for(let i=0; i<badgeClassID.length; i++) {
+
+      console.log(badgeClassID[i]);
+
+      try {
+        [dbResult1, dbResult2] = await prisma.$transaction([
+          prisma.submittedBadges.updateMany({
+            data: {
+              downloadedAt: nowTimeJst, 
+            },
+            where: {
+              badgeClassId: badgeClassID[i],
+            },
+          }),
+          prisma.submittedBadges.findMany({
+            select: {
+              userID: true,
+              userEMail: true,
+              badgeName: true,
+              badgeDescription: true,
+              badgeIssuerName: true,
+              badgeIssuedOn: true,
+              downloadedAt: true,
+            },
+            where: {
+              badgeClassId: badgeClassID[i],
+              userIDInfo: {userID: {not: ''}},              
+            },
+            orderBy: {
+              submittedAt: 'desc',
+            },
+            distinct: ['userID'],
+          }),
+        ]);
+      }
+      catch(e) {
+        exp = e;
+        ng = true;
+        console.log(e);
+      }
+
+      if(dbResult2 == null) {
+        ng = true;
+        break;
+      }
+      else {
+        output = output.concat(dbResult2);
+      }
+    }
+
+    if(ng == false) {
+      res.status(200).json({
+        exportData: output,
+        msg: null,
+      });
+      return;
+    }
+  }
+  catch(e) {
+    exp = e;
+    ng = true;
+    console.log(e);
+  }
+
+  if(ng == true) {
+    res.status(500).json({
+      exportData: null,
+      msg: `ERROR: DB access fail, exp = ` + exp,
+    });
+  }
+
+  return;
+}
