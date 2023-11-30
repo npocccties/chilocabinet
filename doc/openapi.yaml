@@ -62,9 +62,9 @@ components:
             type: integer
             # 0  success
             # 100 bad request (other)
-            # 101   bad email address
-            # 102   verify ng badge ng
-            # 103   verify ng vc
+            # 101 bad user_id
+            # 102 verify ng badge ng
+            # 103 verify ng vc
             # 200 server error
         reason_msg:
             type: string
