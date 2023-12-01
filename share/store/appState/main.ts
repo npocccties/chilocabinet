@@ -25,6 +25,11 @@ export const AppEvent = {
   CommUploadUserList:   "CommUploadUserList",
   CommGetBadgeList:     "CommGetBadgeList",
   CommGetBadgeUserList: "CommGetBadgeUserList",
+  CommExportCsv:        "CommExportCsv",
+  CommClearDB:          "CommClearDB",
+  CommUploadCSV:        "CommUploadCSV",
+  OpenUploadCSV:        "OpenFileUploadCSV",
+  ShowDialog:           "ShowDialog",
 } as const;
 
 
@@ -95,6 +100,13 @@ export type AppStateType_BadgeUserList = {
   }[] | null
 };
 
+export type AppStateType_Dialog = {
+  type: number,
+  title: string | null,
+  msg: string | null,
+  setResult: any,
+};
+
 
 
 
@@ -157,6 +169,16 @@ const AppState_BadgeUserList = atom<AppStateType_BadgeUserList> ({
   },
 });
 
+const AppState_Dialog = atom<AppStateType_Dialog> ({
+  key: RECOIL_ATOMS_KEYS.APPSTATE_DIALOG,
+  default: {
+    type: 0,
+    title: null,
+    msg: null,
+    setResult: null, 
+  },
+});
+
 
 
 
@@ -183,3 +205,9 @@ export const useAppState_BadgeList = () => {
 export const useAppState_BadgeUserList = () => {
   return useRecoilState(AppState_BadgeUserList);
 };
+
+export const useAppState_Dialog = () => {
+  return useRecoilState(AppState_Dialog);
+};
+
+

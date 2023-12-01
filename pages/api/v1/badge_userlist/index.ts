@@ -178,7 +178,7 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
 
     for(let i=0; i<badgeClassID.length; i++) {
 
-      console.log(badgeClassID[i]);
+      //console.log(badgeClassID[i]);
 
       try {
         [dbResult1, dbResult2] = await prisma.$transaction([
@@ -227,6 +227,17 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
     }
 
     if(ng == false) {
+      output = output.map((badge) => {
+        if(badge.badgeIssuedOn != null) {
+          const date = badge.badgeIssuedOn;
+          const dateStr = `${date.getFullYear().toString()}/${date.getMonth().toString().padStart(2,'0')}/${date.getDay().toString().padStart(2,'0')} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}:${date.getSeconds().toString().padStart(2,'0')}`;
+          return {...badge, badgeIssuedOn: dateStr};
+        }
+        else {
+          return badge;
+        } 
+      });
+
       res.status(200).json({
         exportData: output,
         msg: null,
@@ -243,7 +254,7 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
   if(ng == true) {
     res.status(500).json({
       exportData: null,
-      msg: `ERROR: DB access fail, exp = ` + exp,
+      msg: `ERROR: DB access fail,\r\nException = ` + exp,
     });
   }
 

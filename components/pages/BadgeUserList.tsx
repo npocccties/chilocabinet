@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
@@ -9,6 +9,7 @@ import {
   AppEvent,
   useAppState_Page,
   useAppState_BadgeUserList,
+  useAppState_Dialog,
 } from "@/share/store/appState/main";
 
 
@@ -16,88 +17,197 @@ import {
 
 export const BadgeUserList = () => {
 
-  let [statePage, setStatePage] = useAppState_Page();
-  let [badgeUserList, setBadgeUserList] = useAppState_BadgeUserList();
+  const [statePageOrg, setStatePage] = useAppState_Page();
+  const [badgeUserListOrg, setBadgeUserList] = useAppState_BadgeUserList();
+  const [stateDialogOrg, setStateDialog] = useAppState_Dialog();
+  const [resultDialog, setResultDialog] = useState(null);
+  const [fileHandle, setFileHandle] = useState(null);
 
-  let pageAct = false;
+  let statePage = statePageOrg;
+  let badgeUserList = badgeUserListOrg;
+  let stateDialog = stateDialogOrg;
+
   let startComm = false;
+  let startCommCsv = false;
 
-  if(statePage.page == AppPage.BadgeUserList && statePage.event == AppEvent.OpenPage) {
-    pageAct = true;
+  //<---- 画面遷移時の処理 ---->
+
+  if( (statePage.page == AppPage.BadgeUserList) && 
+      (statePage.event == AppEvent.OpenPage)
+  ){
     startComm = true;
     statePage = {...statePage, event: AppEvent.CommGetBadgeUserList, lock: true};
     badgeUserList = { success: false, connecting: true, list: null, listNotApp: null, badgeName: null };
   }
 
-  if(statePage.page == AppPage.BadgeUserList && startComm == false) {
-    if(statePage.event == AppEvent.CommGetBadgeUserList && badgeUserList.connecting == false) {
-      pageAct = true;
-      statePage = {...statePage, event: null, lock: false};
+  //<---- ダイアログCLOSE時の処理 ---->
+
+  if(statePage.page == AppPage.BadgeUserList && statePage.lock == false && resultDialog != null) {
+    if(resultDialog.type == 3 && resultDialog.yesno === true) {
+      startCommCsv = true;
+      statePage = {...statePage, event: AppEvent.CommExportCsv, lock: true};
     }
   }
+
+  //<---- 能力バッジ別提出ユーザー一覧取得通信終了時の状態遷移 ---->
+
+  if( (statePage.page == AppPage.BadgeUserList) &&
+      (startComm == false) &&
+      (statePage.event == AppEvent.CommGetBadgeUserList) &&
+      (badgeUserList.connecting == false)
+  ){
+    statePage = {...statePage, event: null, lock: false};
+  }
+
+  //<---- レンダリング後の状態遷移・通信処理の起動 ---->
 
   useEffect(() => {
-    if(startComm) {
+    if(resultDialog != null) {
+      setResultDialog(null);
+    }
+    if(stateDialog != stateDialogOrg) {
+      setStateDialog(stateDialog);
+    }
+    if(badgeUserList != badgeUserListOrg) {
       setBadgeUserList(badgeUserList);
     }
-    if(pageAct){
+    if(statePage != statePageOrg){
       setStatePage(statePage);
     }
-  });
 
-  if(startComm == true) {
-    const formdata = {
-      badge_class_id: statePage.param,
-    };
+    //<-- バッジ別提出ユーザー取得 -->
 
-    const headerdata = {
-      headers: {
-        Accept: "application/json",
-      },
+    if(startComm == true) {
+      const formdata = {
+        badge_class_id: statePage.param,
+      };
+
+      const headerdata = {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+
+      axios.post<any>('/api/v1/badge_userlist', formdata, headerdata)
+      .then((resp) => { 
+        let update = {
+          list: null,
+          listNotApp: null,
+          badgeName: null,
+          connecting: false,
+          success: false,
+        };
+
+        if(resp.data != null && resp.data.badgeName && resp.data.list != null && resp.data.listNotApp) {
+          update = {
+            list: resp.data.list,
+            listNotApp: resp.data.listNotApp,
+            badgeName: resp.data.badgeName,
+            connecting: false,
+            success: true,
+          };
+        }
+        else {
+          console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(バッジ提出者一覧情報) データ欠損");
+          console.log(resp.data.msg);
+        }
+
+        setBadgeUserList(update);
+      })
+      .catch((err) => {
+        console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧情報)");
+        console.log(err);
+
+        let update = {
+          list: null,
+          listNotApp: null,
+          badgeName: null,
+          connecting: false,
+          success: false,
+        };
+
+        
+        setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+        setBadgeUserList(update);
+      });
     }
 
-    axios.post<any>('/api/v1/badge_userlist', formdata, headerdata)
-    .then((resp) => { 
-      let update = {
-        list: null,
-        listNotApp: null,
-        badgeName: null,
-        connecting: false,
-        success: false,
+    //<-- バッジ提出者一覧取得(CSV出力用) -->
+
+    if(startCommCsv == true) {
+      const formdata = {
+        badge_class_id: [ statePage.param ],
+        export: true,
       };
 
-      if(resp.data != null && resp.data.badgeName && resp.data.list != null && resp.data.listNotApp) {
-        update = {
-          list: resp.data.list,
-          listNotApp: resp.data.listNotApp,
-          badgeName: resp.data.badgeName,
-          connecting: false,
-          success: true,
+      const headerdata = {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+
+      //CSV出力データ取得
+      axios.post<any>('/api/v1/badge_userlist', formdata, headerdata)
+      .then((resp) => {
+
+        //CSV形式に変換
+        const convert = (s) => {
+          return s == null ? '' :
+            s.replace(/\\/g, '\\')
+             .replace(/\r/g, '\\r')
+             .replace(/\n/g, '\\n')
+             .replace(/\t/g, '\\t')
+             .replace(/"/g,'""')
+             .replace(/(.*[,"'`\\].*)/, '"$1"');
+        }
+
+        const exportCSV = async (records) => {
+
+          let data = records.map((o) => {
+             return [ convert(o.userID),
+               convert(o.badgeName),
+               convert(o.badgeDescription),
+               convert(o.badgeIssuedOn),
+             ].join(','); 
+          }).join('\r\n');
+
+          let bom  = new Uint8Array([0xEF, 0xBB, 0xBF]);
+          let blob = new Blob([bom, data], {type: 'text/csv'});
+
+          //ブラウザからファイル保存
+          let url = (window.URL || window.webkitURL).createObjectURL(blob);
+          let link = document.createElement('a');
+          link.download = 'バッジ提出者一覧.csv';
+          link.href = url;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         };
-      }
-      else {
-         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(バッジ提出者一覧情報) データ欠損");
-         console.log(resp.data.msg);
-      }
 
-      setBadgeUserList(update);
-    })
-    .catch((err) => {
-      console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧情報)");
-      console.log(err);
+        if(resp.data.exportData != null && resp.data.exportData.length > 0) {
+          setStatePage({...statePage, event: null, lock: false});
+          exportCSV(resp.data.exportData);
+        }
+        else {
+          setStateDialog({...stateDialog, type: 10, title: "確認", msg: "0件のデータを取得しました。提出された対象バッジはありません。"});
+          setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+        }
+      })
+      .catch((err) => {
+        console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧(CSVエクスポート))");
+        console.log(err);
+        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。\r\n" +
+          "\r\nstatus: " + err.response.status +
+          "\r\nmsg: " + err.response.data.msg
+        });
+        setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+      });
+    }
+  });  
 
-      let update = {
-        list: null,
-        listNotApp: null,
-        badgeName: null,
-        connecting: false,
-        success: false,
-      };
+  //<-- 画面表示するテーブルデータ作成 -->
 
-      setBadgeUserList(update);
-    });
-  }
-
+  //登録ユーザー
   const tableData = useMemo(() => {
       if(badgeUserList.list == null) {
         return null;
@@ -108,6 +218,7 @@ export const BadgeUserList = () => {
             id: o.userID,
             name: o.userName,
             mail: o.userEMail,
+            category: '-',
             submittedAt: o.submittedAt == null ? null : o.submittedAt,
             submittedDate: o.submittedAt == null ? null : o.submittedAt.split('T')[0].replaceAll('-', '/'),
             downloadedAt: o.downloadedAt == null ? null : o.downloadedAt,
@@ -120,6 +231,7 @@ export const BadgeUserList = () => {
     [badgeUserList.list]
   );
 
+  //未登録ユーザー 
   const tableDataNotApp = useMemo(() => {
       if(badgeUserList.listNotApp == null) {
         return null;
@@ -137,8 +249,16 @@ export const BadgeUserList = () => {
     [badgeUserList.listNotApp]
   );
 
+  // <---- ハンドラCSVダウンロードボタン押下 ---->
 
+  const onClickDownloadCsv = () => {
+    if(statePage.page == AppPage.BadgeUserList && statePage.lock == false) {
+      setStateDialog({...stateDialog, type: 3, setResult: setResultDialog, title: null, msg: null});
+      setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+    }
+  }
 
+  // <---- 画面表示条件 ---->
 
   let useSpinner = false;
   let messageTxt = null;
@@ -151,7 +271,7 @@ export const BadgeUserList = () => {
     return ( <></> );
   }
 
-  if( startComm || badgeUserList.connecting == true ) {
+  if( startComm || badgeUserList.connecting == true || statePage.event == AppEvent.CommExportCsv) {
     useSpinner = true;
   }
 
@@ -183,12 +303,9 @@ export const BadgeUserList = () => {
     }
   }
 
-  const defaultMaterialTheme = createTheme();
-
-
-
-
   // <---- 画面表示 ---->
+
+  const defaultMaterialTheme = createTheme();
 
   return (
     <>
@@ -244,12 +361,13 @@ export const BadgeUserList = () => {
              戻る
             </Button>
             { showTable == false ? <></> :
-              <><Box></Box>
-              <Button color={"white"} fontSize={"12px"} backgroundColor={"teal"}
-                onClick={null}
-              >
-                CSVダウンロード
-              </Button>
+              <>
+                <Box></Box>
+                <Button color={"white"} fontSize={"12px"} backgroundColor={"teal"}
+                  onClick={onClickDownloadCsv}
+                >
+                  CSVダウンロード
+                </Button>
               </>
             }
           </Flex>
@@ -283,8 +401,9 @@ export const BadgeUserList = () => {
               <MaterialReactTable
                 columns={[
                   { minSize: 100, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
-                  { minSize: 400, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 200, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
+                  { minSize: 200, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 100, header: 'カテゴリ', accessorKey: 'category', enableSorting: false, enableColumnActions: false },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                   { minSize: 100, header: 'CSVファイル未出力', accessorKey: 'downloaded' },
                 ]}
@@ -368,4 +487,4 @@ export const BadgeUserList = () => {
       </Flex>
     </>
   );
-};
+}

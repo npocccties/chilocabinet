@@ -31,29 +31,13 @@ export default async function handler(req, res) {
         },
         where: {
           badgeClassId: groupResult[i].badgeClassId,
+          userIDInfo: {userID: {not: ''}},
         },
         distinct: ['userID'],
       });
 
       groupResult[i]._count.userID = idCount.length;
     }
-
-    for(let i=0; i<groupResult.length; i++) {
-      const idCount = await prisma.submittedBadges.findMany({
-        select: {
-          userID: true,
-        },
-        where: {
-          badgeClassId: groupResult[i].badgeClassId,
-        },
-        distinct: ['userID'],
-      });
-
-      groupResult[i]._count.userID = idCount.length;
-    }
-
-
-
   }
   catch(exp) {
     console.log("ERROR: API badgelist, DB access exception.")

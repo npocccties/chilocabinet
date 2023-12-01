@@ -12,6 +12,7 @@ import {
   useAppState_UserList,
   useAppState_UserListNotApp,
   useAppState_UserListUpload,
+  useAppState_Dialog,
 } from "@/share/store/appState/main";
 
 
@@ -19,22 +20,42 @@ import {
 
 export const UserList = () => {
 
-  let [statePage, setStatePage] = useAppState_Page();
-  let [userList, setUserList] = useAppState_UserList();
-  let [userListNotApp, setUserListNotApp] = useAppState_UserListNotApp();
-  let [userListUpload, setUserListUpload] = useAppState_UserListUpload();
+  const [statePageOrg, setStatePage] = useAppState_Page();
+  const [userListOrg, setUserList] = useAppState_UserList();
+  const [userListNotAppOrg, setUserListNotApp] = useAppState_UserListNotApp();
+  const [userListUploadOrg, setUserListUpload] = useAppState_UserListUpload();
+  const [stateDialogOrg, setStateDialog] = useAppState_Dialog();
+  const [resultDialog, setResultDialog] = useState(null);
+
+  let statePage = statePageOrg;
+  let userList = userListOrg;
+  let userListNotApp = userListNotAppOrg;
+  let userListUpload = userListUploadOrg;
+  let stateDialog = stateDialogOrg;
 
   let startComm = false;
-  let pageAct = false;
+  let startOpenFile = false;
+
+  //<---- 画面遷移時の処理 ---->
 
   if((statePage.page == AppPage.UserList || statePage.page == AppPage.UserListNotApp) && statePage.event == AppEvent.OpenPage) {
     statePage = {...statePage, event: null };
-    pageAct = true;
     startComm = true;
     statePage = {...statePage, event: AppEvent.CommGetUserList, lock: true };
     userList = { connecting: true, success: false, list: null };
     userListNotApp = { connecting: true, success: false, list: null };
   } 
+
+  //<---- ダイアログCLOSE時の処理 ---->
+
+  if(statePage.page == AppPage.UserList && statePage.lock == false && resultDialog != null) {
+    if(resultDialog.type == 4 && resultDialog.yesno === true) {
+      startOpenFile = true;
+      statePage = {...statePage, event: AppEvent.OpenUploadCSV, lock: true};
+    }
+  }
+
+  //<---- 学習者一覧取得通信終了時の状態遷移 ---->
 
   if( (statePage.page ==  AppPage.UserList || statePage.page == AppPage.UserListNotApp) &&
       startComm == false &&
@@ -43,7 +64,6 @@ export const UserList = () => {
       userListNotApp.connecting == false
   ){
     statePage = {...statePage, event: null, lock: false };
-    pageAct = true;
   }
 
   if( statePage.page == AppPage.UserList &&
@@ -56,7 +76,6 @@ export const UserList = () => {
       statePage = {...statePage, event: AppEvent.CommGetUserList, lock: true };
     }
     else {
-      pageAct = true;
       statePage = {...statePage, event: null, lock: false };
     }
   }
@@ -68,19 +87,26 @@ export const UserList = () => {
         userListNotApp.list.length <= 0
     ){
       statePage = {...statePage, page: "UserList"};
-      pageAct = true;
     }
   }
 
   useEffect(() => {
-    if(startComm){
+    if(resultDialog != null) {
+      setResultDialog(null);
+    }
+
+    if(userList != userListOrg){
       setUserList(userList);
       setUserListNotApp(userListNotApp);
     }
-    if(pageAct || startComm){
+
+    if(userListNotApp != userListNotAppOrg){
+      setUserListNotApp(userListNotApp);
+    }
+
+    if(statePage != statePageOrg){
       setStatePage(statePage);
     }
-  });
 
   if(startComm == true) {
     const formdata = {
@@ -131,6 +157,12 @@ export const UserList = () => {
     })
   } 
 
+    if(startOpenFile == true) {
+      uploacCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog);
+    }
+  });
+
+
   const tableData = useMemo((() => {
       if(userList.list == null) {
         return null;
@@ -171,9 +203,7 @@ export const UserList = () => {
     return ( <></> );
   }
 
-  if( startComm || userList.connecting == true ) {
-    //showMessage = true;
-    //messageTxt = '＜データ取得中＞';
+  if( startComm || userList.connecting == true) {
     enableUploadCsv = false;
     useSpinner = true;
   }
@@ -184,7 +214,11 @@ export const UserList = () => {
     enableUploadCsv = false;
   }
 
-  else if(userListUpload.connecting == true) {
+  else if(statePage.event == AppEvent.CommUploadCSV) {
+    enableUploadCsv = false;
+    useSpinner = true;
+  }
+  else if(statePage.event != null && statePage.event != AppEvent.OpenUploadCSV && statePage.event != AppEvent.ShowDialog) {
     enableUploadCsv = false;
   }
 
@@ -196,13 +230,13 @@ export const UserList = () => {
   else if(tableData != null && tableData.length > 0) {
     showTable = true;
   }
-  else {
-    showMessage = true;
-  }
 
   const onClickUpload = () => {
     if(enableUploadCsv) {
-      uploadIDListCsv(statePage, setStatePage, userListUpload, setUserListUpload);
+      setStateDialog({...stateDialog, type: 4, setResult: setResultDialog, title: null, msg: null});
+      setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+
+      //uploadIDListCsv(statePage, setStatePage, userListUpload, setUserListUpload);
     }
   }
 
@@ -361,14 +395,8 @@ export const UserList = () => {
 
 
 
-async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserListUpload)
+async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog)
 {
-  const checkYes = window.confirm(
-    "学習者一覧をCSVファイルから登録します。" +
-    "この操作を行うと現在登録してある学習者一覧は削除されます。" +
-    "実行してよろしいですか。"
-  );
-
   let handle = null;
   let file = null;
   let text = null;
@@ -376,30 +404,29 @@ async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserL
   let listArray = [];
   let msg = null;
 
-  if(checkYes) {
-    try {
-      [handle] = await (window as any).showOpenFilePicker({
-        types: [{accept: {'*/*': ['.csv']}}]
-      });
+  try {
+    [handle] = await (window as any).showOpenFilePicker({
+      types: [{accept: {'*/*': ['.csv']}}]
+    });
 
-      file = await handle.getFile()
-      text = await file.text();      
-    }
-    catch (err) { //no act
-    }
-  } 
-
+    file = await handle.getFile()
+    text = await file.text();      
+  }
+  catch (err) { //no act
+  }
 
   if(handle == null) {
+    setStatePage({...statePage, event: null, lock: false});
     return;  //ユーザーによるファイル選択キャンセル
   }
 
   if(text == null) {
-    window.alert("ファイルのオープンに失敗しました。");
+    setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "ファイルのOPENに失敗しました。"});
+    setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     return;
   }
 
-  //Emailアドレスフォーマットチェック正規表現  
+  //ユーザーIDフォーマットチェック正規表現  
   //const regstr = '^[a-zA-Z0-9_+-]+(.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*.)+[a-zA-Z]{2,}$';
 
   lines = text.split(/\r\n|\n/);
@@ -447,9 +474,13 @@ async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserL
   }
 
   if(msg != null) {
-    window.alert(msg);
+    setStateDialog({...stateDialog, type: 10, title: "エラー", msg: msg});
+    setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     return;
   }
+
+  statePage = {...statePage, event: AppEvent.CommUploadCSV, lock: true};
+  setStatePage(statePage);
 
   userListUpload = {...userListUpload, connecting: true, success: false, msg: null, exp: null};
   statePage = {...statePage, lock: true, event: AppEvent.CommUploadUserList};
@@ -476,10 +507,12 @@ async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserL
     if(success == null || success == false) {
       msg = "ERROR: コンポーネント(UserList) 学習者リスト更新サーバー処理結果エラー, " + resp.data.msg;
       console.log(msg);
-      window.alert("学習者リストの更新に失敗しました。\n" + msg);
+      setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "学習者リストの更新に失敗しました。\r\n" + msg});
+      setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     }
     else {
-      window.alert("学習者リストを更新しました。");
+      setStateDialog({...stateDialog, type: 10, title: "確認", msg: "学習者リストを更新しました。"});
+      setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     }    
 
     userListUpload = {
@@ -489,12 +522,13 @@ async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserL
       exp: exp,
     };
 
-     setUserListUpload(userListUpload);
+    setUserListUpload(userListUpload);
+    return;
   })
   .catch((error) => {
     let msg = "ERROR: コンポーネント(UserList) 学習者リスト更新サーバー通信エラー";
     try {
-      msg = msg + '\n' + error.response.data.msg;
+      msg = msg + '\r\n' + error.response.data.msg;
     }
     catch(exp) { // no act
     }
@@ -509,7 +543,8 @@ async function uploadIDListCsv(statePage, setStatePage, userListUpload, setUserL
       exp: error,
     };
 
-    window.alert("学習者リストの更新に失敗しました。\n" + msg);
+    setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "学習者リストの更新に失敗しました。\r\n" + msg});
+    setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     setUserListUpload(userListUpload);
   });
 }

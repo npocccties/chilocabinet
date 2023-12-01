@@ -7,7 +7,7 @@ import { Metatag } from "@/components/Metatag";
 import { UserList } from "@/components/pages/UserList";
 import { BadgeList } from "@/components/pages/BadgeList";
 import { BadgeUserList } from "@/components/pages/BadgeUserList";
-import { Modal2 } from "@/components/pages/Modal2";
+import { Dialog } from "@/components/pages/Dialog";
 
 import { SERVICE_NAME, SERVICE_DESCRITION } from "@/configs";
 
@@ -18,6 +18,7 @@ const Home: NextPage = () => {
       <UserList />
       <BadgeList />
       <BadgeUserList />
+      <Dialog />
     </Layout>
   );
 };
