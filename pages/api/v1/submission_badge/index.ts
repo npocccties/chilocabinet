@@ -9,9 +9,7 @@ const pngitxt = require("png-itxt");
 const Through = require("stream").PassThrough;
 
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
-
-import { vcPayload_sample } from "@/pages/api/v1/submission_badge/debug_payload_sample";
-import { vcPayload_sample_2 } from "@/pages/api/v1/submission_badge/debug_payload_sample_2";
+import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
 
 type ReturnStatus = {
   fail: boolean,
@@ -28,7 +26,7 @@ const retStatusInit = {
 }
 
 //デバッグ用データ
-var debugData = {
+const debugData = {
   inputJwt: null,
   privateKey: null,
   publicKey: null,
@@ -209,7 +207,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
     }
 
     badgeName =  badge.name;
-    badgeClass = badge.id;
+    badgeClass = badge.criteria.id;
     badgeDescription = badge.description;
 
     if(typeof(badge.issuer) === 'string' && badge.issuer.startsWith('http')) {
@@ -626,7 +624,7 @@ export const validateOpenBadge = async (
   }
 
   const postProc = axios.post(
-    openBadgeVerifierURL,
+    OPENBADGE_VERIFIER_URL,
     {
       data: JSON.stringify(openBadgeMetadata),
     },
@@ -648,7 +646,7 @@ export const validateOpenBadge = async (
     console.log(exp);
 
     if(debugData.skipCheckBadgeMetaData == false) {
-      return { result: false, msg: "OpenBadge validater POST Fail, URL = " +  openBadgeVerifierURL};
+      return { result: false, msg: "OpenBadge validater POST Fail, URL = " +  OPENBADGE_VERIFIER_URL};
     }
   }
 
@@ -678,47 +676,3 @@ export const validateOpenBadge = async (
 
   return { result, msg };
 }
-
-
-
-
-//デバッグ
-async function createDebugData_1 ()
-{
-  const publicJwkSample = {
-    kty: 'EC',
-    crv: 'secp256k1',
-    x: 'cIdbL5mGqV2Dr7IOYE4sElqXVKLx5HI3gAii9VsOTxs',
-    y: 'txw09jPxjzEBKXyUw4PY2V_gsLh_iHkPIFD7_i28S2Y'
-  }
-
-  const privateJwkSample = {
-    kty: 'EC',
-    crv: 'secp256k1',
-    d: 'N6AuNdUdUPXXDPr_OBbVxYC-ji-Wwaw5_dZ1BQSHuJM',
-    x: 'cIdbL5mGqV2Dr7IOYE4sElqXVKLx5HI3gAii9VsOTxs',
-    y: 'txw09jPxjzEBKXyUw4PY2V_gsLh_iHkPIFD7_i28S2Y'
-  }
-
-  let header = {
-     "alg": "ES256K",
-     "kid": "did:web:did.cccties.org#33e5ca5bf0ed40f78089c582bb17a1cfvcSigningKey-78e5b",
-     "typ": "JWT"
-  };
-
-  //console.log(ION);
-
-  let payload = vcPayload_sample_2;
-  let jwtSample = await ION.signJws({ header: header, payload: payload, privateJwk: privateJwkSample });
-
-  debugData = {
-    inputJwt: jwtSample,
-    privateKey: privateJwkSample,
-    publicKey: publicJwkSample,
-    skipCheckVcExp: true,
-    skipCheckVcSign: false,
-    skipCheckBadgeEMailSalt: true,
-    skipCheckBadgeMetaData: false,
-  }
-}
-

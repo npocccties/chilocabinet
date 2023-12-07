@@ -4,8 +4,6 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay, Spinner } from "@chakra-ui/react";
 
-import { EXPORT_CSV_VER } from "@/configs/constants"
-
 import {
   AppPage,
   AppEvent,
@@ -14,7 +12,8 @@ import {
   useAppState_Dialog,
 } from "@/share/store/appState/main";
 
-//<---- バッジ提出者一覧画面コンポーネント ---->
+
+
 
 export const BadgeUserList = () => {
 
@@ -31,7 +30,7 @@ export const BadgeUserList = () => {
   let startComm = false;
   let startCommCsv = false;
 
-  //<---- 画面遷移時の処理 ---->
+    //<---- 画面遷移時の処理 ---->
 
   if( (statePage.page == AppPage.BadgeUserList) && 
       (statePage.event == AppEvent.OpenPage)
@@ -128,7 +127,7 @@ export const BadgeUserList = () => {
         };
 
         
-        setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+        setStatePage({...statePage, event: AppEvent.ShowDilog, lock: true});
         setBadgeUserList(update);
       });
     }
@@ -147,74 +146,65 @@ export const BadgeUserList = () => {
         },
       }
 
-      //CSV出力データ取得
       axios.post<any>('/api/v1/badge_userlist', formdata, headerdata)
       .then((resp) => {
 
-        //CSV形式に変換
-        const convert = (s) => {
-          return s == null ? '' :
-            s.replace(/\\/g, '\\')
-             .replace(/\r/g, '\\r')
-             .replace(/\n/g, '\\n')
-             .replace(/\t/g, '\\t')
-             .replace(/"/g,'""')
-             .replace(/(.*[,"'`\\].*)/, '"$1"');
-        }
+        setStatePage({...statePage, event: AppEvent.AccessFile, lock: true});
 
-        //<---- CSVファイル出力 ---->
+        //ユーザーがファイルを選択
+        window.showSaveFilePicker({
+          types: [{accept: {'*/*': ['.csv']}}]
+        })
+        .then((handle) => {
+          
+          const save = async () => {
+            try {
+              const list = resp.data.exportData;
+              const writable = await handle.createWritable();
+              //await writable.write("\u{EFBBBF}");
+              for(let i=0; i<list.length; i++) {
+                await writable.write(
+                   `20231115,` +
+                   `${list[i].userID},` +
+                   `${list[i].badgeName},` +
+                   `${list[i].badgeDescription},` +
+                   `${list[i].badgeIssuedOn}` +
+                   ((i + 1 < list.length) ? "\r\n" : "")  //最終列以外に開業を付加
+                 );
+              }
+              await writable.close();
 
-        const exportCSV = async (records) => {
+              setStateDialog({...stateDialog, type: 10, title: "確認", msg: `CSVファイル出力しました。全 ${list.length} 件。`});
+              setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+            }
+            catch(exp) {
+              console.log(exp);
+              setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "ファイル書き込みに失敗しました。" });
+              setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+            }
+          };
 
-          let data = records.map((o) => {
-             return [
-               EXPORT_CSV_VER,
-               convert(o.userID),
-               convert(o.badgeName),
-               convert(o.badgeDescription),
-               convert(o.badgeIssuerName),
-               convert(o.badgeIssuedOn),
-             ].join(','); 
-          }).join('\r\n');
+          save();
 
-          let header = "CSVバージョン,ID,バッジ名,バッジ説明,バッジ発行者名,バッジ発行日\r\n";
-          let bom  = new Uint8Array([0xEF, 0xBB, 0xBF]);
-          let blob = new Blob([bom, header, data], {type: 'text/csv'});
-
-          //ブラウザからファイル保存
-          let url = (window.URL || window.webkitURL).createObjectURL(blob);
-          let link = document.createElement('a');
-          link.download = 'バッジ提出者一覧.csv';
-          link.href = url;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        };
-
-        if(resp.data.exportData != null && resp.data.exportData.length > 0) {
+        })
+        .catch((err) => {
+          //ユーザーによるキャンセル⇒何もせずに終わる
           setStatePage({...statePage, event: null, lock: false});
-          exportCSV(resp.data.exportData);
-        }
-        else {
-          setStateDialog({...stateDialog, type: 10, title: "確認", msg: "0件のデータを取得しました。提出された対象バッジはありません。"});
-          setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
-        }
+        });
       })
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧(CSVエクスポート))");
         console.log(err);
-        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。\r\n" +
-          "\r\nstatus: " + err.response.status +
-          "\r\nmsg: " + err.response.data.msg
+        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。\n\n" + 
+          "status: " + err.status +
+          "msg: " + err.data.msg
         });
         setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
       });
     }
+
   });  
 
-  //<-- 画面表示するテーブルデータ作成 -->
-
-  //登録ユーザー
   const tableData = useMemo(() => {
       if(badgeUserList.list == null) {
         return null;
@@ -237,7 +227,6 @@ export const BadgeUserList = () => {
     [badgeUserList.list]
   );
 
-  //未登録ユーザー 
   const tableDataNotApp = useMemo(() => {
       if(badgeUserList.listNotApp == null) {
         return null;
@@ -248,13 +237,15 @@ export const BadgeUserList = () => {
             id: o.userID,
             submittedAt: o.submittedAt == null ? null : o.submittedAt,
             submittedDate: o.submittedAt == null ? null : o.submittedAt.split('T')[0].replaceAll('-', '/'),
-            mail: o.userEMail,
           };
         });
       }
     },
     [badgeUserList.listNotApp]
   );
+
+
+
 
   // <---- ハンドラCSVダウンロードボタン押下 ---->
 
@@ -265,6 +256,8 @@ export const BadgeUserList = () => {
     }
   }
 
+
+
   // <---- 画面表示条件 ---->
 
   let useSpinner = false;
@@ -273,20 +266,12 @@ export const BadgeUserList = () => {
   let showTableNotApp = false;
   let showBackButton = false;
   let showTableNotAppButton = false;
-  let service = "";
-
-  if(statePage.param != null) {
-    let m = statePage.param.match(/^https?:\/\/([^/]+)(\/.*)?$/);
-    if(m != null && m[1] != null) {
-      service = m[1];
-    }
-  }
 
   if ( statePage.page != AppPage.BadgeUserList && statePage.page != AppPage.BadgeUserListNotApp ) {
     return ( <></> );
   }
 
-  if( startComm || badgeUserList.connecting == true || statePage.event == AppEvent.CommExportCsv) {
+  if( startComm || badgeUserList.connecting == true ) {
     useSpinner = true;
   }
 
@@ -318,6 +303,9 @@ export const BadgeUserList = () => {
     }
   }
 
+
+
+
   // <---- 画面表示 ---->
 
   const defaultMaterialTheme = createTheme();
@@ -333,22 +321,11 @@ export const BadgeUserList = () => {
         textAlign={"center"}
       >
 
-      <Flex
-        direction={"column"}
-        alignItems={"left"}
-        textAlign={"left"}
-      >
-        <Box fontSize={"12px"}>
-          { //サービス名表示
-            service 
-          }
-        </Box>
-        <Box fontWeight={"bold"} fontSize={"20px"}>
+        <Box fontWeight={"bold"} fontSize={"20px"} as={"u"}>
           { //バッジ名表示
             badgeUserList.badgeName
           }
         </Box>
-      </Flex>
 
         { //タイトル表示
           statePage.page != AppPage.BadgeUserList ? (<></> ) :
@@ -427,8 +404,8 @@ export const BadgeUserList = () => {
               <MaterialReactTable
                 columns={[
                   { minSize: 100, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
-                  { minSize: 200, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
-                  { minSize: 200, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 400, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
+                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                   { minSize: 100, header: 'CSVファイル未出力', accessorKey: 'downloaded' },
                 ]}
@@ -439,7 +416,7 @@ export const BadgeUserList = () => {
                 enableColumnFilters={false}
                 enableHiding={false}
                 enableColumnActions={true}
-                initialState={{density: 'comfortable', showGlobalFilter: true}}
+                initialState={{density: 'compact', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
                     {label: "10件", value: 10},
@@ -459,11 +436,6 @@ export const BadgeUserList = () => {
                     '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
                   },
                 }}
-                muiTableProps={{
-                  sx: {
-                    tableLayout: 'fixed',
-                  },
-                }}
               />
             </ThemeProvider>
           </Box>
@@ -475,7 +447,6 @@ export const BadgeUserList = () => {
               <MaterialReactTable
                 columns={[
                   { minSize: 400, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                 ]}
                 data={tableData == null ? [] : tableDataNotApp}
@@ -485,7 +456,7 @@ export const BadgeUserList = () => {
                 enableColumnFilters={false}
                 enableHiding={false}
                 enableColumnActions={true}
-                initialState={{density: 'comfortable', showGlobalFilter: true}}
+                initialState={{density: 'compact', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
                     {label: "10件", value: 10},
@@ -510,11 +481,6 @@ export const BadgeUserList = () => {
                     'color': 'red',
                   },
                 })}
-                muiTableProps={{
-                  sx: {
-                    tableLayout: 'fixed',
-                  },
-                }}
               />
             </ThemeProvider>
           </Box>

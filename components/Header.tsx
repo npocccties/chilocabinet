@@ -65,7 +65,9 @@ export const Header: React.FC<Props> = ({ onOpen }) => {
           能力バッジ一覧
         </Box>
         <Box style={StyleSelectorOff}>
-          ヘルプ<ExternalLinkIcon/>
+          <Link href={process.env.NEXT_PUBLIC_HELP_LINK} isExternal>
+            ヘルプ<ExternalLinkIcon/>
+          </Link>
         </Box>
         <Flex gap={"16px"}></Flex>
       </Flex>

@@ -4,7 +4,6 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay, Spinner } from "@chakra-ui/react";
 
-import { CABINET_OPERATOR_TITLE } from "@/configs/constants";
 import {
   AppPage,
   AppEvent,
@@ -16,7 +15,7 @@ import {
 } from "@/share/store/appState/main";
 
 
-
+//<-- 学習者一覧画面コンポーネント -->
 
 export const UserList = () => {
 
@@ -49,46 +48,23 @@ export const UserList = () => {
   //<---- ダイアログCLOSE時の処理 ---->
 
   if(statePage.page == AppPage.UserList && statePage.lock == false && resultDialog != null) {
+
+    //CSVアップロード確認ダイアログを閉じる => ダウンロード処理を開始
     if(resultDialog.type == 4 && resultDialog.yesno === true) {
       startOpenFile = true;
       statePage = {...statePage, event: AppEvent.OpenUploadCSV, lock: true};
     }
-  }
 
-  //<---- 学習者一覧取得通信終了時の状態遷移 ---->
-
-  if( (statePage.page ==  AppPage.UserList || statePage.page == AppPage.UserListNotApp) &&
-      startComm == false &&
-      statePage.event == AppEvent.CommGetUserList &&
-      userList.connecting == false &&
-      userListNotApp.connecting == false
-  ){
-    statePage = {...statePage, event: null, lock: false };
-  }
-
-  if( statePage.page == AppPage.UserList &&
-      startComm == false &&
-      statePage.event == AppEvent.CommUploadUserList &&
-      userListUpload.connecting == false
-  ){
-    if(userListUpload.success) {
+    //CSVアップロード確認ダイアログを閉じる => 学習者リスト表示を更新
+    if(resultDialog.type == 5) {
       startComm = true;
       statePage = {...statePage, event: AppEvent.CommGetUserList, lock: true };
-    }
-    else {
-      statePage = {...statePage, event: null, lock: false };
+      userList = { connecting: true, success: false, list: null };
+      userListNotApp = { connecting: true, success: false, list: null };
     }
   }
 
-  if(statePage.page == AppPage.UserListNotApp) {
-    if( userListNotApp.success == false ||
-        userListNotApp.connecting == true ||
-        userListNotApp.list == null ||
-        userListNotApp.list.length <= 0
-    ){
-      statePage = {...statePage, page: "UserList"};
-    }
-  }
+  //<---- レンダリング後の状態遷移・通信処理の起動 ---->
 
   useEffect(() => {
     if(resultDialog != null) {
@@ -108,60 +84,71 @@ export const UserList = () => {
       setStatePage(statePage);
     }
 
-  if(startComm == true) {
-    const formdata = {
-      type: "download",
-    };
+    //<---- 学習者リスト取得 ---->
 
-    const headerdata = { 
-      headers: {
-        Accept: "application/json",
-      },
-    }
+    if(startComm == true) {
+      const formdata = {
+        type: "download",
+      };
 
-    axios.post<any>('/api/v1/userlist', formdata, headerdata)
-    .then((resp) => {
-      const userID = (resp.data == null ? null : resp.data.userID);
-      const userIDNotApp = (resp.data == null ? null : resp.data.userIDNotApp);
-      if(userID == null || userIDNotApp == null) {
-        console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報) 受信データ欠損");
-        console.log(resp);
+      const headerdata = { 
+        headers: {
+          Accept: "application/json",
+        },
       }
 
-      const updateUserID = {
-        list: userID,
-        connecting: false,
-        success: (userID != null),  
-      };
+      axios.post<any>('/api/v1/userlist', formdata, headerdata)
+      .then((resp) => {
 
-      const updateUserIDNotApp = {
-        list: userIDNotApp,
-        connecting: false,
-        success: (userIDNotApp != null),
-      };
+        const userID = (resp.data == null ? null : resp.data.userID);
+        const userIDNotApp = (resp.data == null ? null : resp.data.userIDNotApp);
 
-      setUserList(updateUserID);
-      setUserListNotApp(updateUserIDNotApp);
-    })
-    .catch((error) => {
-      console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報)");
-      console.log(error);
-      const updateUserID = {
-        list: null,
-        connecting: false,
-        success: false,
-      };
+        if(userID == null || userIDNotApp == null) {
+          console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報) 受信データ欠損");
+          console.log(resp);
+        }
 
-      setUserList(updateUserID);
-      setUserListNotApp(updateUserID);
-    })
-  } 
+        const updateUserID = {
+          list: userID,
+          connecting: false,
+          success: (userID != null),  
+        };
+
+        const updateUserIDNotApp = {
+          list: userIDNotApp,
+          connecting: false,
+          success: (userIDNotApp != null),
+        };
+
+        setUserList(updateUserID);
+        setUserListNotApp(updateUserIDNotApp);
+        setStatePage({...statePage, event: null, lock: false});
+      })
+      .catch((error) => {
+
+        console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報)");
+        console.log(error);
+
+        const updateUserID = {
+          list: null,
+          connecting: false,
+          success: false,
+        };
+
+        setUserList(updateUserID);
+        setUserListNotApp(updateUserID);
+        setStatePage({...statePage, event: null, lock: false});
+      })
+    } 
+
+    //<---- CSVアップロードファイル選択ダイアログ表示 ---->
 
     if(startOpenFile == true) {
       uploacCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog);
     }
   });
 
+  // <---- 表出力内容を作成 ---->
 
   const tableData = useMemo((() => {
       if(userList.list == null) {
@@ -189,14 +176,14 @@ export const UserList = () => {
     [userListNotApp.list]
   );
 
-
-
+  // <---- 表出力内容を作成 ---->
 
   let showTable = false;
   let showTableNotApp = false;
-  let showMessage = false;
-  let enableUploadCsv = true;
-  let messageTxt = "学習者が登録されていません";
+  let showUploadCsv = false;
+  let enableUploadCsv = false;
+  let showUpdateCsv = false
+  let messageTxt = null;
   let useSpinner = false;
 
   if ( statePage.page != AppPage.UserList && statePage.page != AppPage.UserListNotApp) {
@@ -204,43 +191,54 @@ export const UserList = () => {
   }
 
   if( startComm || userList.connecting == true) {
-    enableUploadCsv = false;
     useSpinner = true;
   }
 
   else if( userList.success == false || tableData == null ) {
-    showMessage = true;
     messageTxt = '＜データ取得失敗＞';
-    enableUploadCsv = false;
   }
 
   else if(statePage.event == AppEvent.CommUploadCSV) {
-    enableUploadCsv = false;
+    showUploadCsv = true;    
     useSpinner = true;
   }
-  else if(statePage.event != null && statePage.event != AppEvent.OpenUploadCSV && statePage.event != AppEvent.ShowDialog) {
-    enableUploadCsv = false;
+
+  else if(statePage.page == AppPage.UserList) {
+    showUploadCsv = true;
   }
 
-  else if(statePage.page == AppPage.UserListNotApp) {
-    if(tableDataNotApp != null && tableDataNotApp.length > 0) {
+  if(showUploadCsv == true && statePage.event == null && statePage.lock == false) {
+    enableUploadCsv = true;
+  }
+
+  if(statePage.page == AppPage.UserList && tableData != null){
+    if(tableData.length > 0) {
+      showTable = true;
+    }
+    else if(messageTxt == null) {
+      messageTxt = "学習者が登録されていません";
+    }
+  }
+
+  if(statePage.page == AppPage.UserListNotApp && tableDataNotApp != null){
+    if(tableDataNotApp.length > 0) {
       showTableNotApp = true;
     }
   }
-  else if(tableData != null && tableData.length > 0) {
-    showTable = true;
-  }
+
+  //<---- 学習者リストアップロードボタンハンドラ ---->
 
   const onClickUpload = () => {
     if(enableUploadCsv) {
       setStateDialog({...stateDialog, type: 4, setResult: setResultDialog, title: null, msg: null});
       setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
-
-      //uploadIDListCsv(statePage, setStatePage, userListUpload, setUserListUpload);
     }
   }
 
+  //<---- 画面表示 ---->
+
   const defaultMaterialTheme = createTheme();
+
   return (
     <>
       <Flex
@@ -252,20 +250,20 @@ export const UserList = () => {
         textAlign={"center"}
       >
         <Box fontWeight={"bold"} fontSize={"16px"}>
-          {CABINET_OPERATOR_TITLE + "　学習者一覧"}
+          {process.env.NEXT_PUBLIC_USERLIST_TITLE + "　学習者一覧"}
         </Box>
-        { showTable == false ? (<></>) : (
+        { showUploadCsv == false ? (<></>) : (
           <Box>
             <Button color={"white"}
               fontSize={"12px"}
-              backgroundColor={enableUploadCsv ? "teal" : "gray"}
+              backgroundColor={"teal"}
               onClick={onClickUpload}
             >
               学習者リストアップロード
             </Button>
           </Box>
         )}
-        { showMessage == false ? (<></>) : (
+        { messageTxt == null ? (<></>) : (
           <Box m={[10,100]} fontWeight={"bold"} fontSize={"16px"}>
             {messageTxt}
           </Box>
@@ -306,8 +304,8 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 150, header: 'ID', accessorKey: 'userID', enableSorting: false },
-                  { minSize: 400, header: '氏名', accessorKey: 'userName', enableSorting: false },
+                  { size: 400, header: 'ID', accessorKey: 'userID', enableSorting: false },
+                  { size: 400, header: '氏名', accessorKey: 'userName', enableSorting: false },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableRowNumbers
@@ -318,7 +316,7 @@ export const UserList = () => {
                 enableColumnFilters={false}
                 enableHiding={false}
                 enableColumnActions={false}
-                initialState={{density: 'compact', showGlobalFilter: true}}
+                initialState={{density: 'comfortable', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
                     {label: "10件", value: 10},
@@ -336,6 +334,11 @@ export const UserList = () => {
                 muiTableBodyProps= {{
                   sx: {
                     '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
+                  },
+                }}
+                muiTableProps={{
+                  sx: {
+                    tableLayout: 'fixed',
                   },
                 }}
               />
@@ -358,7 +361,7 @@ export const UserList = () => {
                 enableColumnFilters={false}
                 enableHiding={false}
                 enableColumnActions={true}
-                initialState={{density: 'compact', showGlobalFilter: true}}
+                initialState={{density: 'comfortable', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
                     {label: "10件", value: 10},
@@ -383,6 +386,11 @@ export const UserList = () => {
                     'color': 'red',
                   },
                 })}
+                muiTableProps={{
+                  sx: {
+                    tableLayout: 'fixed',
+                  },
+                }}
               />
             </ThemeProvider>
           </Box>
@@ -392,8 +400,7 @@ export const UserList = () => {
   );
 };
 
-
-
+//<---- CSVファイルアップロード処理 ---->
 
 async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog)
 {
@@ -444,7 +451,7 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       else if(cells[1].match(' +')) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が未設定です`;
       }
-      else if(cells[0].length > 20) {
+      else if(cells[0].length > 254) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'ID'が文字数上限（254）を超えています。`;
       }
       else if(cells[1].length > 256) {
@@ -511,7 +518,7 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     }
     else {
-      setStateDialog({...stateDialog, type: 10, title: "確認", msg: "学習者リストを更新しました。"});
+      setStateDialog({...stateDialog, type: 5, title: "確認", msg: "学習者リストを更新しました。"});
       setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     }    
 
@@ -549,6 +556,7 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
   });
 }
   
+//<---- CSVフォーマット文字列コンバート ---->
 
 function parseCsvLine(line)
 {

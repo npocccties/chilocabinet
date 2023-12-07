@@ -23,8 +23,7 @@ import {
   useAppState_Dialog,
 } from "@/share/store/appState/main";
 
-
-
+//<---- ダイアログ表示コンポーネント ---->
 
 export const Dialog = () => {
 
@@ -62,6 +61,8 @@ export const Dialog = () => {
       }
     }
   }
+
+  //<---- ダイアログ表示内容を設定 ---->
 
   let title = "タイトル";
   let msg = "メッセージ";
@@ -104,6 +105,14 @@ export const Dialog = () => {
     color2 = "teal";
   }
  
+  if(stateDialog.type == 5) {
+    title = "確認";
+    msg = "学習者一覧を更新しました";
+    button1 = null;
+    button2 = null;
+    useCloseButton = true;
+  }
+
   if(stateDialog.type == 10) {
     title = stateDialog.title;
     msg = stateDialog.msg;
@@ -111,7 +120,9 @@ export const Dialog = () => {
     button2 = null;
     useCloseButton = true;
   }
- 
+
+  //<---- ダイアログ表示 ---->
+
   return (
     <>
       <AlertDialog

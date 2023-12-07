@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-
+import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
@@ -125,6 +125,7 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
       if(o.userIDInfo == null) {
         return {
           userID: o.userID,
+          userEMail: o.userEMail,
           submittedAt: o.submittedAt == null ? null : o.submittedAt.toISOString(),
         };
       }

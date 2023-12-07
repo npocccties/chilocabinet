@@ -9,7 +9,8 @@ import {
   type MRT_RowSelectionState,
 } from 'material-react-table';
 
-import { CABINET_OPERATOR_TITLE } from "@/configs/constants";
+import { EXPORT_CSV_VER } from "@/configs/constants"
+
 import {
   AppPage,
   AppEvent,
@@ -18,6 +19,7 @@ import {
   useAppState_Dialog,
 } from "@/share/store/appState/main";
 
+//<---- 能力バッジ一覧表示コンポーネント ---->
 
 export const BadgeList = () => {
 
@@ -153,6 +155,7 @@ export const BadgeList = () => {
     }
 
     //<-- バッジ提出者一覧取得(CSV出力用) -->
+
     if(startCommCsv == true && Object.keys(rowSelection).length <= 0) {
       statePage = {...statePage, event: null, lock: false};
       setStatePage(statePage);
@@ -203,18 +206,23 @@ export const BadgeList = () => {
              .replace(/(.*[,"'`\\].*)/, '"$1"');
         }
 
+        //<---- CSVファイル出力 ---->
+
         const exportCSV = async (records) => {
 
           let data = records.map((o) => {
-             return [ convert(o.userID),
+             return [
+               EXPORT_CSV_VER, 
+               convert(o.userID),
                convert(o.badgeName),
                convert(o.badgeDescription),
                convert(o.badgeIssuedOn),
              ].join(',');
           }).join('\r\n');
 
+          let header = "CSVバージョン,ID,バッジ名,バッジ説明,バッジ発行者名,バッジ発行日\r\n";
           let bom  = new Uint8Array([0xEF, 0xBB, 0xBF]);
-          let blob = new Blob([bom, data], {type: 'text/csv'});
+          let blob = new Blob([bom, header, data], {type: 'text/csv'});
 
           //ブラウザからファイル保存
           let url = (window.URL || window.webkitURL).createObjectURL(blob);
@@ -255,11 +263,23 @@ export const BadgeList = () => {
       }
       else {
         return badgeList.list.map(o => {
+          let service = null;
+          if(o.badgeClassId != null) {
+            let m = o.badgeClassId.match(/^https?:\/\/([^/]+)(\/.*)?$/);
+            if(m != null && m[1] != null) {
+              service = m[1];
+            }
+            else {
+              service = o.badgeClassId;
+            }
+          }
+
           return {
             name: o.badgeName,
             issuer: o.badgeIssuerName,
             count: ((o._count == null) ? null : o._count.userID),
             classid: o.badgeClassId,
+            service: service, 
           };
         });
       }
@@ -383,9 +403,10 @@ export const BadgeList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 300, header: '能力バッジ名', accessorKey: 'name' },
-                  { minSize: 300, header: '発行者', accessorKey: 'issuer' },
-                  { minSize: 10, header: '提出者数', accessorKey: 'count' },
+                  { size: 400, header: '能力バッジ名', accessorKey: 'name', enableGlobalFilter: false },
+                  { size: 300, header: '発行者', accessorKey: 'issuer', enableGlobalFilter: false },
+                  { size: 400, header: '学習サービス', accessorKey: 'service', enableGlobalFilter: false },
+                  { size: 200, header: '提出者数', accessorKey: 'count', enableGlobalFilter: false },
                 ]}
                 data={tableData == null ? [] : tableData}
                 muiTableBodyCellProps={ (cell) => {
@@ -400,32 +421,24 @@ export const BadgeList = () => {
                     },
                   }
                 }}
+                enableFilters={false}
+                enablePagination={false}
                 enableRowSelection={(row) => row.original.count > 0}
-                enableGlobalFilterModes
                 rowNumberMode={"original"}
                 enableDensityToggle={false}
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
                 enableHiding={false}
                 enableColumnActions={true}
-                initialState={{density: 'compact', showGlobalFilter: true}}
-                muiTablePaginationProps={{
-                  rowsPerPageOptions: [
-                    {label: "10件", value: 10},
-                    {label: "25件", value: 25},
-                    {label: "50件", value: 50},
-                    {label: "100件", value: 100},
-                  ],
-                  labelRowsPerPage: "ページ表示数",
-                }}
-                muiSearchTextFieldProps={{
-                  placeholder: "検索",
-                  sx: { minWidth: '300px' },
-                  variant: 'outlined',
-                }}
+                initialState={{density: 'comfortable'}}
                 muiTableBodyProps= {{
                   sx: {
                     '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
+                  },
+                }}
+                muiTableProps={{
+                  sx: {
+                    tableLayout: 'fixed',
                   },
                 }}
                 onRowSelectionChange={setRowSelection}
