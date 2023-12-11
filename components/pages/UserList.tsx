@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
-import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay, Spinner } from "@chakra-ui/react";
+import { Link, Flex, Box, Button, Spinner } from "@chakra-ui/react";
 
 import {
   AppPage,
@@ -13,7 +13,6 @@ import {
   useAppState_UserListUpload,
   useAppState_Dialog,
 } from "@/share/store/appState/main";
-
 
 //<-- 学習者一覧画面コンポーネント -->
 
@@ -249,7 +248,7 @@ export const UserList = () => {
         gap={"12px"}
         textAlign={"center"}
       >
-        <Box fontWeight={"bold"} fontSize={"16px"}>
+        <Box fontWeight={"bold"} fontSize={"22px"}>
           {process.env.NEXT_PUBLIC_USERLIST_TITLE + "　学習者一覧"}
         </Box>
         { showUploadCsv == false ? (<></>) : (
@@ -274,13 +273,14 @@ export const UserList = () => {
         { ((showTableNotApp == false &&
             tableDataNotApp != null &&
             tableDataNotApp.length > 0) == false) ? (<></>) : (
-          <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
-            <Box color={"red"} textDecoration={"underline"}
-              onClick={() => setStatePage({...statePage, page: "UserListNotApp"})}
+          <Flex direction={"row"} alignItems={"center"} gap={"16pt"}>
+            <Box color={"blue"} textDecoration={"underline"}
             >
-              ※提出済みで学習者一覧に登録のないメールアドレスがあります。
+              <Link _hover={{fontWeight: "bold"}} onClick={() => setStatePage({...statePage, page: "UserListNotApp"})}>
+                ※提出済みで学習者一覧に登録のないメールアドレスがあります。
+              </Link>
             </Box>
-            <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
+            <Button color={"black"} backgroundColor={"lightgray"} fontSize={"12px"} h={"22px"} m={"8px"} 
               onClick={() => setStatePage({...statePage, page: "UserListNotApp"})} 
             >
               確認する 
@@ -289,7 +289,7 @@ export const UserList = () => {
         )}
         { showTableNotApp == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
-            <Box color={"red"} textDecoration={"underline"}>
+            <Box>
               バッジが提出済みですが、学習者登録がなされていないメールアドレスです
             </Box>
             <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
@@ -304,8 +304,8 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { size: 400, header: 'ID', accessorKey: 'userID', enableSorting: false },
-                  { size: 400, header: '氏名', accessorKey: 'userName', enableSorting: false },
+                  { minSize: 300, header: 'ID', accessorKey: 'userID', enableSorting: false },
+                  { minSize: 300, header: '氏名', accessorKey: 'userName', enableSorting: false },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableRowNumbers
@@ -328,6 +328,7 @@ export const UserList = () => {
                 }}
                 muiSearchTextFieldProps={{
                   placeholder: "検索",
+                  size: "small",
                   sx: { minWidth: '300px' },
                   variant: 'outlined',
                 }}
@@ -350,9 +351,9 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 400, header: 'ID', accessorKey: 'userID', enableColumnActions: false, enableSorting: false },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'userEMail', enableColumnActions: false, enableSorting: false },
-                  { minSize: 150, header: '提出日', accessorKey: 'submittedAt' },
+                  { minSize: 300, header: 'ID', accessorKey: 'userID', enableColumnActions: false, enableSorting: false },
+                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'userEMail', enableColumnActions: false, enableSorting: false },
+                  { minSize: 100, header: '提出日', accessorKey: 'submittedAt' },
                 ]}
                 data={tableDataNotApp == null ? [] : tableDataNotApp}
                 enableGlobalFilterModes
@@ -373,6 +374,7 @@ export const UserList = () => {
                 }}
                 muiSearchTextFieldProps={{
                   placeholder: "検索",
+                  size: "small",
                   sx: { minWidth: '300px' },
                   variant: 'outlined',
                 }}
@@ -381,11 +383,6 @@ export const UserList = () => {
                     '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee',},
                   },
                 }}
-                muiTableBodyCellProps = {(cell) => ({
-                  sx: {
-                    'color': 'red',
-                  },
-                })}
                 muiTableProps={{
                   sx: {
                     tableLayout: 'fixed',

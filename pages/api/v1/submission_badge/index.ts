@@ -34,13 +34,9 @@ const debugData = {
   skipCheckVcSign: false,
   skipCheckBadgeEMailSalt: false,
   skipCheckBadgeMetaData: false,
-};
+} as const;
 
-const openBadgeVerifierURL =
-  "https://openbadgesvalidator.imsglobal.org/results";
-
-
-
+//<---- API ウォレットからのバッジ提出 ---->
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
@@ -50,21 +46,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let vcJwt: string = badge_vc;
  
   let retStatus = {... retStatusInit};
+  let resBadge = {badge: null};
 
   // for-debug
   //await createDebugData_1();
-  if(debugData.inputJwt != null) {
-    vcJwt = debugData.inputJwt;
-  }
+  //if(debugData.inputJwt != null)
+  //{
+  //  vcJwt = debugData.inputJwt;
+  //}
 
   try {
-    retStatus = await submissionBadgeProc(userID, userEMail, vcJwt);
+    retStatus = await submissionBadgeProc(userID, userEMail, vcJwt, resBadge);
   }
   catch(exp) {
-    loggerError(`API submission_badge: Unknown exception.`);
-    loggerWarn(exp);
-    console.log(`Error: API submission_badge: Unknown exception.`);
-    console.log(exp);
+    loggerError(`ERROR: API submission_badge: Unknown exception.`);
+    loggerError(exp);
     retStatus  = {
       fail: true,
       status_code: 500,
@@ -100,20 +96,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if(retStatus.reason_code != 0) {
-    loggerError(`API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`); 
-    console.log(`Error: API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`);
+  if(retStatus.reason_code == 0) {
+    loggerInfo(`API submission_badge: Success. ID=${userID}, Email=${userEMail} badgeName=${resBadge.badge.name}`);
+  }
+  else {
+    loggerError(`Error: API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`); 
   }
 
   res.status(retStatus.status_code).json({reason_code: retStatus.reason_code, reason_msg: retStatus.reason_msg});
   return;
 }
 
+//<---- バッジ提出受け入れ処理 ---->
 
-
-
-//バッジ提出受け入れ処理
-async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
+async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, resBadge)
 {
   //入力パラメータチェック
   let { retStatus, vcHeader, vcPayload, vcSignBin } = await checkInputParam(userID, userEMail, vcJwt);
@@ -138,10 +134,8 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
     vcPhoto = vcPayload.vc.credentialSubject.photo;    
   }
   catch(exp) {
-    loggerError(`API submission_badge: VC data parse Error, not exist data Exception.`);
-    loggerWarn(exp);
-    console.log(`Error: API submission_badge: VC data parse Error, not exist data Exception.`);
-    console.log(exp);
+    loggerError(`ERROR: API submission_badge: VC data parse Error, not exist data Exception.`);
+    loggerError(exp);
   }
 
   if(vcSubEMail == null) {
@@ -163,19 +157,17 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
   try {
     let expTime = new Date(vcExp * 1000);
     if(expTime < nowTime) {
-      loggerError(`API submission_badge: VC expire time is over, exp:${expTime}, now:${nowTime}`);
-      console.log(`Error: API submission_badge: VC expire time is over, exp:${expTime}, now:${nowTime}`);
+      loggerError(`ERROR: API submission_badge: VC expire time is over, exp:${expTime}, now:${nowTime}`);
 
-      if(debugData.skipCheckVcExp == false) {
+      //if(debugData.skipCheckVcExp == false)
+      {
         return { fail:true, status_code:400, reason_code:103, reason_msg:"VC expire time is over." };
       }
     }
   }
   catch(exp) {
-    loggerError(`API submission_badge: VC expire time is unknown.`);
-    console.log(`Error: API submission_badge: VC expire time is unknown.`);
-    loggerWarn(exp);
-    console.log(exp);
+    loggerError(`ERROR: API submission_badge: VC expire time is unknown.`);
+    loggerError(exp);
     return { fail:true, status_code:400, reason_code:102, reason_msg:"VC expire time is unknown." };
   }
 
@@ -196,12 +188,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
 
   try {
     let badge = badgeMetaData.badge;
+    resBadge = { badge: badge };
 
     if(typeof(badgeMetaData.badge) === 'string' && badgeMetaData.badge.startsWith('http')) {
       //Badge情報をメタデータ埋め込みURLから取得
       await axios.get<any>(badgeMetaData.badge)
       .then((resp) => {
-        //console.log(resp.data);
+        loggerDebug(resp.data);
         badge = resp.data;
       });
     }
@@ -214,7 +207,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
       //Issure情報をメタデータ埋め込みURLから取得
       await axios.get<any>(badge.issuer)
       .then((resp) => {
-        //console.log(resp.data);
+        loggerDebug(resp.data);
         badge.issuer = resp.data;
       });
     }
@@ -222,10 +215,8 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
     badgeIssName = badge.issuer.name;
   }
   catch(exp) {
-    loggerError(`API submission_badge: badge data parse Error, not exist data Exception.`);
-    console.log(`Error: API submission_badge: badge data parse Error, not exist data Exception.`);
-    loggerWarn(exp);
-    console.log(exp);
+    loggerError(`ERROR: API submission_badge: badge data parse Error, not exist data Exception.`);
+    loggerError(exp);
   }
 
   if(badgeName == null) {
@@ -252,8 +243,8 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
   try{
     issuedOnTime = new Date(badgeMetaData.issuedOn);
 
-    console.log(badgeMetaData.issuedOn);
-    console.log(issuedOnTime);
+    loggerDebug(badgeMetaData.issuedOn);
+    loggerDebug(issuedOnTime);
   }
   catch(exp) { // no act
   }
@@ -288,15 +279,12 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
     newDbData = dbResult2;
   }
   catch(exp) {
-    loggerError(`API submission_badge: DB insert exception, to SubmittedBadges table`);
-    console.log(`Error: API submission_badge: DB insert exception, to SubmittedBadges table`);
-    loggerWarn(exp);
-    console.log(exp);
+    loggerError(`ERROR: API submission_badge: DB insert exception, to SubmittedBadges table`);
+    loggerError(exp);
   }
 
   if(newDbData == false) {
-    loggerError(`API submission_badge: DB insert fail, to SubmittedBadges table`);
-    console.log(`Error: API submission_badge: DB insert fail, to SubmittedBadges table`);
+    loggerError(`ERROR: API submission_badge: DB insert fail, to SubmittedBadges table`);
 
     retStatus.fail = true;
     retStatus.status_code = 500;
@@ -312,10 +300,8 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string)
   return retStatus;
 }
 
+//<---- 入力パラメータチェック・BASE64デコード ---->
 
-
-
-//入力パラメータチェック・BASE64デコード
 async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
 {
   let retStatus = {... retStatusInit};
@@ -398,7 +384,9 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
     retStatus.status_code = 400;
     retStatus.reason_code = 103;
     retStatus.reason_msg = 'Error, jwt format, cannot base64 decode.';
-    console.log(exceptionVar);
+
+    loggerError("ERROR: API submission_badge, jwt format, cannot base64 decode.");
+    loggerError(exceptionVar);
     return retParam;
   };
 
@@ -414,7 +402,9 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
     retStatus.status_code = 400;
     retStatus.reason_code = 103;
     retStatus.reason_msg = 'Error, jwt format, cannot parse to json data.';
-    console.log(exceptionVar);
+
+    loggerError("ERROR: API submission_badge, jwt format, cannot to json data. ");
+    loggerError(exceptionVar);
     return retParam;
   };
 
@@ -429,10 +419,8 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
   return retParam;
 }
 
+//<---- ヘッダを参照してDID:WEB公開鍵を返す ---->
 
-
-
-//ヘッダを参照してDID:WEB公開鍵を返す
 async function resolveHeader( header )
 {
   let resolvePubKey = null;
@@ -445,8 +433,8 @@ async function resolveHeader( header )
     let id = '#' + kids[1];
     let diddoc = await ION.resolve(kid);
 
-    //console.log(diddoc);
-    //console.log(diddoc.didDocument.verificationMethod);
+    loggerDebug(diddoc);
+    loggerDebug(diddoc.didDocument.verificationMethod);
 
     diddoc.didDocument.verificationMethod.forEach( vm => {
       if(controller == vm.controller && id == vm.id) {
@@ -455,35 +443,32 @@ async function resolveHeader( header )
     });
   }
   catch(exp) {
-    console.log('ERROR, did:web resolve error, header.kid=' + kid);
-    console.log(exp);
+    loggerError('ERROR, did:web resolve error, header.kid=' + kid);
   }
 
-  //console.log(resolvePubKey);
+  loggerDebug(resolvePubKey);
   return resolvePubKey;
 }
 
+//<---- VC署名チェック ---->
 
-
-
-
-//VC署名チェック
 async function checkValidationVc(vcHeader, vcPayload, vcJwt)
 {
   let retStatus = {... retStatusInit};
 
-  //for-debug
-  if(debugData.skipCheckVcSign == true)  {
-    return retStatus;
-  }
+  //if(debugData.skipCheckVcSign == true)
+  //{
+  //  return retStatus;
+  //}
 
   //DID:WEBから公開鍵を取得
   let pubKey;
-  if(debugData.publicKey != null) { 
-    // for-debug
-    pubKey = debugData.publicKey;
-  }
-  else {
+  //if(debugData.publicKey != null) { 
+  //  // for-debug
+  //  pubKey = debugData.publicKey;
+  //}
+  //else
+  {
     pubKey = await resolveHeader(vcHeader);
     if(pubKey == null) {
       retStatus.fail = true;
@@ -494,14 +479,15 @@ async function checkValidationVc(vcHeader, vcPayload, vcJwt)
     }
   }
 
-  //console.log(pubKey);
+  loggerDebug(pubKey);
 
   //VC署名検証
   let verifyRet = false;
   try {
     verifyRet = await ION.verifyJws({jws: vcJwt, publicJwk: pubKey});
   } catch (exceptionVar) {
-    console.log(exceptionVar);
+    loggerError("ERROR: API submission_badge, vefiry Jws check Exception.");
+    loggerError(exceptionVar);
   };
 
   if(verifyRet == false) {
@@ -539,10 +525,8 @@ const base64url = {
   },
 };
 
+//<---- OpenBadge画像データからiTxtデータを取得 ---->
 
-
-
-//OpenBadge画像データからiTxtデータを取得
 export const extractOpenBadgeMetadataFromImage = async (imageString: string) => {
   let ret = null;
   let retErr = null;
@@ -553,7 +537,7 @@ export const extractOpenBadgeMetadataFromImage = async (imageString: string) => 
     start.pipe(
       pngitxt.get("openbadges", function (err: any, data: any) {
 
-        //console.log(data);
+        loggerDebug(data);
 
         if (err) {
           err = true;
@@ -566,6 +550,8 @@ export const extractOpenBadgeMetadataFromImage = async (imageString: string) => 
         }    
         catch(exp) {
           retErr = 'PNG iTxt data cannot get. (no data, or parse error)';
+          loggerError("ERROR: submission_badge, PNG iTxt data cannot get. (no data, or parse error)");
+          loggerError(exp);
           reject(err);
         }
       })
@@ -581,7 +567,8 @@ export const extractOpenBadgeMetadataFromImage = async (imageString: string) => 
     await Promise.race([getITxt, timeout]);
   }
   catch(exp) {
-    console.log(exp);
+    loggerError("ERROR: submission_badge, PNG iTxt data cannot get.");
+    loggerError(exp);
     if(retErr == null) {
       retErr = 'PNG iTxt data cannot get.';
     }
@@ -595,10 +582,8 @@ export const extractOpenBadgeMetadataFromImage = async (imageString: string) => 
   return { ret, err: retErr };
 };
 
+//<---- OpenBadge 検証 ---->
 
-
-
-//OpenBadge 検証
 export const validateOpenBadge = async (
   email: string,
   openBadgeMetadata: any
@@ -606,18 +591,17 @@ export const validateOpenBadge = async (
   const [, expectedEmailHash] = openBadgeMetadata.recipient.identity.split("$");
   const salt = openBadgeMetadata.recipient.salt;
   let saltVal = salt === null || salt === undefined ? "" : salt;
-  //console.log("saltVal=", saltVal);
+  loggerDebug("saltVal=", saltVal);
   const inputEmailHash = crypto
     .createHash("sha256")
     .update(email + saltVal)
     .digest("hex");
 
   if (inputEmailHash !== expectedEmailHash) {
-    loggerError(`API submission_badge: email and salt unmatch, email=${email}, salt=${saltVal}`);
-    console.log(`Error: API submission_badge: email and salt unmatch, email=${email}, salt=${saltVal}`);
+    loggerError(`ERROR: API submission_badge: email and salt unmatch, email=${email}, salt=${saltVal}`);
 
     let msg = `Error, validateOpenBadge, email and salt unmatch, email=${email}, salt=${saltVal}`;
-    if(debugData.skipCheckBadgeEMailSalt == false)
+    //if(debugData.skipCheckBadgeEMailSalt == false)
     {
       return { result: false, msg: msg };
     }
@@ -640,18 +624,18 @@ export const validateOpenBadge = async (
     retValidate = await postProc;
   }
   catch(exp) {
-    loggerError(`API submission_badge: OpenBadge validaterURL POST exception.`);
-    console.log(`Error: API submission_badge: OpenBadge validaterURL POST exception.`);
-    loggerWarn(exp);
-    console.log(exp);
+    loggerError(`ERROR: API submission_badge: OpenBadge validaterURL POST exception.`);
+    loggerError(exp);
 
-    if(debugData.skipCheckBadgeMetaData == false) {
+
+    //if(debugData.skipCheckBadgeMetaData == false)
+    {
       return { result: false, msg: "OpenBadge validater POST Fail, URL = " +  OPENBADGE_VERIFIER_URL};
     }
   }
 
-  //console.log(retValidate);
-  //console.log("END openBadgeValidator ret=", retValidate.data.report.valid);
+  loggerDebug(retValidate);
+  loggerDebug("END openBadgeValidator ret=", retValidate.data.report.valid);
 
   let result;
   let msg;
@@ -666,13 +650,12 @@ export const validateOpenBadge = async (
   else if(msg == null) {
     msg = 'validateOpenBadge Fail';
 
-    loggerError(`API submission_badge: OpenBadge validater result, NG.`);
-    console.log(`Error: API submission_badge: OpenBadge validater result, NG.`);
+    loggerError(`ERROR: API submission_badge: OpenBadge validater result, NG.`);
   }
 
-  if(debugData.skipCheckBadgeMetaData == true) {
-    result = true;
-  }
+  //if(debugData.skipCheckBadgeMetaData == true) {
+  //  result = true;
+  //}
 
   return { result, msg };
 }

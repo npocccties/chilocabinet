@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
-import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay, Spinner } from "@chakra-ui/react";
+import { Link, Flex, Box, Button, Spinner } from "@chakra-ui/react";
 
 import { EXPORT_CSV_VER } from "@/configs/constants"
 
@@ -343,7 +343,7 @@ export const BadgeUserList = () => {
             service 
           }
         </Box>
-        <Box fontWeight={"bold"} fontSize={"20px"}>
+        <Box fontWeight={"bold"} fontSize={"22px"}>
           { //バッジ名表示
             badgeUserList.badgeName
           }
@@ -352,7 +352,7 @@ export const BadgeUserList = () => {
 
         { //タイトル表示
           statePage.page != AppPage.BadgeUserList ? (<></> ) :
-          <Box fontWeight={"bold"} fontSize={"16px"}>
+          <Box fontWeight={"bold"} fontSize={"22px"}>
             {"バッジ提出者一覧"}
           </Box>
         }
@@ -364,13 +364,13 @@ export const BadgeUserList = () => {
 
         { //未登録emailのバッジが提出済みの場合の画面遷移ボタン表示 
           showTableNotAppButton == false ? (<></>) : (
-          <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
-            <Box color={"red"} textDecoration={"underline"}
-              onClick={() => setStatePage({...statePage, page: AppPage.BadgeUserListNotApp})}
-            >
-              ※提出済みで学習者一覧に登録のないメールアドレスがあります。
+          <Flex direction={"row"} alignItems={"center"} gap={"12pt"}>
+            <Box color="blue" textDecoration={"underline"}>
+              <Link _hover={{fontWeight: "bold"}} onClick={() => setStatePage({...statePage, page: AppPage.BadgeUserListNotApp})}>
+                ※提出済みで学習者一覧に登録のないメールアドレスがあります。
+              </Link>
             </Box>
-            <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
+            <Button color={"black"}  backgroundColor={"lightgray"} fontSize={"12px"} h={"22px"} my={"8px"} 
               onClick={() => setStatePage({...statePage, page: AppPage.BadgeUserListNotApp})} 
             >
               確認する 
@@ -403,7 +403,7 @@ export const BadgeUserList = () => {
 
           showTableNotApp == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
-            <Box color={"red"} textDecoration={"underline"}>
+            <Box>
               バッジが提出済みですが、学習者登録がなされていないメールアドレスです
             </Box>
             <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
@@ -426,11 +426,11 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 100, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
-                  { minSize: 200, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
-                  { minSize: 200, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
-                  { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
-                  { minSize: 100, header: 'CSVファイル未出力', accessorKey: 'downloaded' },
+                  { minSize: 300, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
+                  { minSize: 300, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
+                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 50, header: '提出日', accessorKey: 'submittedDate' },
+                  { minSize: 210, header: 'CSVファイル未出力', accessorKey: 'downloaded'},
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableGlobalFilterModes
@@ -451,6 +451,7 @@ export const BadgeUserList = () => {
                 }}
                 muiSearchTextFieldProps={{
                   placeholder: "検索",
+                  size: "small",
                   sx: { minWidth: '300px' },
                   variant: 'outlined',
                 }}
@@ -497,6 +498,7 @@ export const BadgeUserList = () => {
                 }}
                 muiSearchTextFieldProps={{
                   placeholder: "検索",
+                  size: "small",
                   sx: { minWidth: '300px' },
                   variant: 'outlined',
                 }}
@@ -505,11 +507,6 @@ export const BadgeUserList = () => {
                     '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
                   },
                 }}
-                muiTableBodyCellProps = {(cell) => ({
-                  sx: {
-                    'color': 'red',
-                  },
-                })}
                 muiTableProps={{
                   sx: {
                     tableLayout: 'fixed',

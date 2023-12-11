@@ -2,18 +2,26 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 
+//<---- API バッジ提出者一覧取得・CSVエクスポート情報取得 ---->
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
   let badgeClassID;
   let exportFlg;
   let msg;
 
+  loggerDebug(req.body);
+  loggerInfo("API badge_userlist, start.");
+
+  //<---- パラメータチェック ---->
+
   try {
     if(req.body.badge_class_id == null) {
       msg = "ERROR: param Badge classID is none.";
-      console.log("ERROR: API badgeUserList, param Badge classID is none.");
+      loggerError("ERROR: API badgeUserList, param Badge classID is none.");
     }
 
+    //CSVエクスポート情報要求時はexportフラグONを設定
     exportFlg = (req.body.export == true);
     badgeClassID = req.body.badge_class_id;
 
@@ -22,11 +30,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         (exportFlg == true && Array.isArray(badgeClassID) == false) ||
         (exportFlg == true && badgeClassID.length == 0)
     ) {
+      //適切なバッジクラスIDが設定されていない
       badgeClassID = null;
     }
     else if(exportFlg == true) {
+      //CSVエクスポート用のパラメータチェック
+      //バッジクラスIDが配列で渡される
       for(let i=0; i < badgeClassID.length; i++) {
         if(typeof(badgeClassID[i]) != 'string') {
+          //適切なバッジクラスIDが設定されていない
           badgeClassID = null;
           break;
         }
@@ -35,16 +47,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if(badgeClassID == null && msg == null) {
       msg = "ERROR: cannot parse, Badge classID.";
-      console.log("ERROR: API badgeUserList, cannot parese, Badge classID.");
+      loggerError("ERROR: API badgeUserList, cannot parese, Badge classID.");
     }
   }
   catch(exp) {
     msg = "ERROR: cannot parese, Badge classID.";
-    console.log("ERROR: API badgeUserList, cannot parese, Badge classID. Exception.");
-    console.log(exp)
+    loggerError("ERROR: API badgeUserList, cannot parese, Badge classID. Exception.");
+    loggerError(exp)
   }
 
   if(msg != null) {
+    //要求パラメータエラー応答
     res.status(400).json({
       list: null,
       listNotApp: null,
@@ -55,17 +68,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if(exportFlg) {
+    //CSVエクスポート用情報取得
     exportCsvBadgeUserList(badgeClassID, res);
   }
   else {
+    //バッジ一覧画面表示用情報取得
     getBadgeUserList(badgeClassID, res);
   }
 
   return;
 }
 
-
-
+//<---- バッジ提出者一覧取得 ---->
 
 async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
 {
@@ -74,6 +88,8 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
   let badgeUserListNoApp = null;
 
   try {
+    loggerInfo(badgeClassID);
+
     const result = await prisma.submittedBadges.findMany({
       select: {
         userID: true,
@@ -92,10 +108,13 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
       distinct: ['userID'],
     });
 
+    loggerDebug(result.toString());
+
     if(result.length >= 1) {
       badgeName = result[0].badgeName;
     }
 
+    //クラスIDにマッチするバッジ名が取得できない場合要求エラーとする
     if(badgeName == null) {
       res.status(400).json({
         list: null,
@@ -106,8 +125,10 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
       return;
     }
 
+    //DB取得結果から学習者リスト登録者のみ抽出
     badgeUserList = result.map( o => {
       if(o.userIDInfo == null) {
+        //配列から削除
         return null;
       }
       else {
@@ -119,8 +140,9 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
           downloadedAt: o.downloadedAt == null ? null : o.downloadedAt.toISOString(),
         };
       }
-    }).filter(Boolean);
+    }).filter(Boolean);    // undifinedのデータは出力に含めない
 
+    //DB取得結果から学習者リスト未登録者のみ抽出
     badgeUserListNoApp = result.map( o => {
       if(o.userIDInfo == null) {
         return {
@@ -130,13 +152,14 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
         };
       }
       else {
+        //配列から削除
         return null;
       };
-    }).filter(Boolean);
+    }).filter(Boolean);    // undifinedのデータは出力に含めない
   }
   catch(exp) {
-    console.log("ERROR: API badgeUserList, DB access fail.");
-    console.log(exp);
+    loggerError("ERROR: API badgeUserList, DB access fail.");
+    loggerError(exp);
   };
 
   if(badgeName == null || badgeUserList == null || badgeUserListNoApp == null) {
@@ -148,6 +171,7 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
     });
   }
   else {
+    //正常終了
     res.status(200).json({
       badgeName: badgeName,
       list: badgeUserList,
@@ -159,8 +183,7 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
   return;  
 }
 
-
-
+//<---- バッジ提出者一覧CSVエクスポート情報取得 ---->
 
 async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiResponse)
 {
@@ -177,12 +200,16 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
     let dbResult1;
     let dbResult2;
 
+    //パラメータ配列の数ループ
     for(let i=0; i<badgeClassID.length; i++) {
+      dbResult1 = null;
+      dbResult2 = null;
 
-      //console.log(badgeClassID[i]);
-
+      loggerInfo(badgeClassID[i]);
+ 
       try {
         [dbResult1, dbResult2] = await prisma.$transaction([
+          //CSVエクスポートするバッジ提出情報はダウンロード日時を記録する
           prisma.submittedBadges.updateMany({
             data: {
               downloadedAt: nowTimeJst, 
@@ -191,6 +218,7 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
               badgeClassId: badgeClassID[i],
             },
           }),
+          //CSVエクスポート情報を取得
           prisma.submittedBadges.findMany({
             select: {
               userID: true,
@@ -211,11 +239,15 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
             distinct: ['userID'],
           }),
         ]);
+
+        console.debug(dbResult1);
+        console.debug(dbResult2);
       }
       catch(e) {
         exp = e;
         ng = true;
-        console.log(e);
+        loggerError("ERROR: API badge_userlist, get export CSV info, DB access Fail.");
+        loggerError(e);
       }
 
       if(dbResult2 == null) {
@@ -223,6 +255,7 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
         break;
       }
       else {
+        //DB取得情報を応答用配列に追加
         output = output.concat(dbResult2);
       }
     }
@@ -230,8 +263,14 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
     if(ng == false) {
       output = output.map((badge) => {
         if(badge.badgeIssuedOn != null) {
+          //現在日時の文字列書式をCSV出力用に変換
           const date = badge.badgeIssuedOn;
-          const dateStr = `${date.getFullYear().toString()}/${date.getMonth().toString().padStart(2,'0')}/${date.getDay().toString().padStart(2,'0')} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}:${date.getSeconds().toString().padStart(2,'0')}`;
+          const dateStr = `${date.getFullYear().toString()}/` +
+              `${date.getMonth().toString().padStart(2,'0')}/` +
+              `${date.getDay().toString().padStart(2,'0')} ` +
+              `${date.getHours().toString().padStart(2,'0')}:` +
+              `${date.getMinutes().toString().padStart(2,'0')}:` +
+              `${date.getSeconds().toString().padStart(2,'0')}`;
           return {...badge, badgeIssuedOn: dateStr};
         }
         else {
@@ -239,6 +278,7 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
         } 
       });
 
+      //正常処理終了
       res.status(200).json({
         exportData: output,
         msg: null,
@@ -249,7 +289,8 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
   catch(e) {
     exp = e;
     ng = true;
-    console.log(e);
+    loggerError("ERROR: API badge_userlist, get export CSV info, parse time string Fail.");
+    loggerError(e);
   }
 
   if(ng == true) {

@@ -2,13 +2,19 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 
+//<---- 学習者一覧取得 ---->
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
+  loggerDebug(req.body);
+
   try {
     if(req.body.type == 'download') {
+      loggerInfo("API userliset, start get info.");
       await proc_download(req, res);
     }
     else if(req.body.type == 'upload') {
+      loggerInfo("API userliset, start upload CSV.");
       await proc_upload(req, res);
     }
     else {
@@ -16,14 +22,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
   catch(exp) {
-    console.log(exp);
+    loggerError("ERROR: API userliset, Exception.");    
+    loggerError(exp);
   }
 
   return;
 }
 
-
-
+//<---- 学習者一覧取得 ---->
 
 async function proc_download(req, res)
 {
@@ -43,15 +49,13 @@ async function proc_download(req, res)
     });
   }
   catch(exp) {
-    console.log(exp);
+    loggerError("ERROR: API userlist, get userlist, DB Exception.");
+    loggerError(exp);
+    return;
   };
 
   if(userID == null) {
-    res.status(200).json({
-      success: false,
-      userID: null,
-      userIDNotApp: null, 
-    });
+    res.status(500).json({ success: false, msg: "ERROR: DB access fail."});
     return;
   }
  
@@ -73,17 +77,18 @@ async function proc_download(req, res)
     });
   }
   catch(exp) {
-    console.log(exp);
+    loggerError("ERROR: API userlist, get userlist not app, DB Exception.");
+    loggerError(exp);
   };
 
   if(userIDNotApp == null) {
-    res.status(200).json({
-      success: false,
-      userID: userID,
-      userIDNotApp: null, 
-    });
+    res.status(500).json({ success: false, msg: "ERROR: DB access fail."});
     return;
   }
+
+  loggerDebug(userID.toString());
+  loggerDebug(userIDNotApp.toString());
+  loggerInfo("API userlist, get info success.");
 
   res.status(200).json({
     success: true,
@@ -93,8 +98,7 @@ async function proc_download(req, res)
   return;
 }
 
-
-
+//<---- 学習者一覧CSVアップロード ---->
 
 async function proc_upload(req, res) {
 
@@ -105,8 +109,7 @@ async function proc_upload(req, res) {
   let expMsg = null;
   let upload = null;
 
-  //console.log(req.body.upload);
-  //console.log("start proc_upload");
+  //<---- パラメータ内容のチェック ---->
 
   type TypeUploadData = {
     name: string,
@@ -122,15 +125,15 @@ async function proc_upload(req, res) {
   try {
     if(typeof req.body.upload == 'string') {
       upload = JSON.parse(req.body.upload);
-      console.log(upload);
     }
     else {
       upload = req.body.upload;
     }
   }
   catch(exp) {
+    loggerError("ERROR: API userlist, upload CSV param Exception.");
+    loggerError(exp);
     expMsg = exp;
-    console.log(exp);
   }
 
   if(upload == null) {
@@ -174,11 +177,11 @@ async function proc_upload(req, res) {
     }  
   }
 
-  if(success) {
-    let dbDelete;
-    let dbInsert;
-    let tabledata = [];
+  let dbInsert;
+  let dbDelete;
+  let tabledata = [];
 
+  if(success) {
     const JST_OFFSET = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
     let nowTimeJst = new Date((new Date()).getTime() + JST_OFFSET);
 
@@ -190,36 +193,38 @@ async function proc_upload(req, res) {
       });    
     }
 
-    //console.log(tabledata);
+    //<---- DB更新 ---->
+    loggerDebug(tabledata.toString());
 
     try {
       [dbDelete, dbInsert] = await prisma.$transaction([
         prisma.users.deleteMany({}),
         prisma.users.createMany({data: tabledata}),
       ]);
-
-      //console.log(dbDelete);
-      //console.log(dbInsert);
     }
     catch(exp) {
+      loggerError("ERROR: API userlist, upload CSV DB fail. Exception.");
+      loggerError(exp);
       success = false;
       msg = "ERROR: Upload UserID data, DB Fail. Exception.";
       expMsg = exp;
       status = 500;
-      console.log(msg);
-      console.log(exp);
     }
 
     if(success && (dbDelete == null || dbInsert == null)) {
       success = false;
       msg = "ERROR: Upload UserID data, DB Fail.";
       status = 500;
-      console.log(msg);
     }
   }
 
   if(success == false) {
-    console.log(msg);
+    loggerError("ERROR: API userlist, upload CSV fail, " + msg);
+  }
+  else {
+    loggerInfo("API userlist, upload CSV success.");
+    loggerDebug(dbDelete);
+    loggerDebug(dbInsert);
   }
 
   res.status(status).json({

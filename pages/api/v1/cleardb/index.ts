@@ -7,7 +7,8 @@ import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
   try {
-    console.log(req.body);
+    loggerDebug(req.body);
+    loggerInfo("API cleardb, start.");
 
     //パラメータチェック
     if(req.body.parameter_clear_db_ok === 'Clear DB OK') {
@@ -19,28 +20,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           prisma.submittedBadges.deleteMany({}),
         ]);
 
-        console.log(dbResult1); 
-        console.log(dbResult2);
+        loggerDebug(dbResult1.toString());
+        loggerDebug(dbResult2.toString());
 
         res.status(200).json({});
       }
       catch(exp) {
         //DB操作時例外
-        console.log(exp);
+        loggerError("ERROR: API cleardb, DB proc Exception.");
+        loggerError(exp);
         res.status(500).json({ error: { errorMessage: "ERROR: DB access error.", detail: exp } });
       };
     }
     else { 
       //削除完了
       res.status(400).json({ error: { errorMessage: "ERROR: Request prameter error."} });
+      loggerInfo("API cleardb, success.");
     }
   }
   catch(exp) {
     //その他の例外
-    console.log(exp);
+    loggerError("ERROR: API cleardb, Exception.");
+    loggerError(exp);
     res.status(500).json({ error: { errorMessage: "ERROR: Server error.", detail: exp } });
   }
 
-  return res;
+  return;
 }
 

@@ -2,9 +2,16 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 
-export default async function handler(req, res) {
+//<---- API 能力バッジ一覧情報取得・CSVエクスポート情報取得 ---->
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
+  loggerDebug(req.body);
+  loggerInfo("API badgelist, get info start.");
 
   let groupResult = null;
+
+  //<---- 提出されたバッジ一覧・カウント情報取得(学習者登録の有無は区別していない) ---->
 
   try {
     groupResult = await prisma.submittedBadges.groupBy({
@@ -24,6 +31,8 @@ export default async function handler(req, res) {
       ],
     });
 
+    //<---- バッジ別に学習者登録されているを提出数を取得 ---->
+
     for(let i=0; i<groupResult.length; i++) {
       const idCount = await prisma.submittedBadges.findMany({
         select: {
@@ -40,18 +49,17 @@ export default async function handler(req, res) {
     }
   }
   catch(exp) {
-    console.log("ERROR: API badgelist, DB access exception.")
-    console.log(exp);
+    loggerError("ERROR: API badgelist, DB access exception.")
+    loggerError(exp);
+    loggerDebug(groupResult);
+    groupResult = null;
   }
-
-
-
-
 
   if(groupResult == null) {
     res.status(500).json({ list: null, msg: "DB access error." });
   }
   else {
+    loggerInfo("API badgelist, get info success.");
     res.status(200).json({list: groupResult, msg: null});
   }
 

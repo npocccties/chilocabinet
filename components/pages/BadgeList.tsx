@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
 import axios from "axios";
 import { ThemeProvider, createTheme } from '@mui/material';
-import { Flex, Box, Button, Container, Stack, useDisclosure, Drawer, DrawerContent, DrawerOverlay, Spinner } from "@chakra-ui/react";
+import { Flex, Box, Button, Spinner } from "@chakra-ui/react";
 import {
   MaterialReactTable,
-  type MRT_ColumnDef,
   type MRT_RowSelectionState,
 } from 'material-react-table';
 
@@ -362,7 +360,7 @@ export const BadgeList = () => {
         gap={"12px"}
         textAlign={"center"}
       >
-        <Box fontWeight={"bold"} fontSize={"16px"}>
+        <Box fontWeight={"bold"} fontSize={"22px"}>
           能力バッジ一覧
         </Box>
         { messageTxt == null ? (<></>) : (
@@ -403,10 +401,10 @@ export const BadgeList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { size: 400, header: '能力バッジ名', accessorKey: 'name', enableGlobalFilter: false },
-                  { size: 300, header: '発行者', accessorKey: 'issuer', enableGlobalFilter: false },
-                  { size: 400, header: '学習サービス', accessorKey: 'service', enableGlobalFilter: false },
-                  { size: 200, header: '提出者数', accessorKey: 'count', enableGlobalFilter: false },
+                  { minSize: 200, header: '能力バッジ名', accessorKey: 'name', enableGlobalFilter: false },
+                  { minSize: 200, header: '発行者', accessorKey: 'issuer', enableGlobalFilter: false },
+                  { minSize: 200, header: '学習サービス', accessorKey: 'service', enableGlobalFilter: false },
+                  { minSize: 50, maxSize: 100, header: '提出者数', accessorKey: 'count', enableGlobalFilter: false },
                 ]}
                 data={tableData == null ? [] : tableData}
                 muiTableBodyCellProps={ (cell) => {
@@ -418,6 +416,10 @@ export const BadgeList = () => {
                     sx: {
                       'textDecoration': 'underline',
                       'color': 'blue',
+                      'cursor': 'pointer',
+                      '&:hover': {
+                        fontWeight: 'bold',
+                      },
                     },
                   }
                 }}
