@@ -97,7 +97,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if(retStatus.reason_code == 0) {
-    loggerInfo(`API submission_badge: Success. ID=${userID}, Email=${userEMail} badgeName=${resBadge.badge.name}`);
+    loggerInfo(`API submission_badge: Success. ID=${userID}, Email=${userEMail} ` +
+        `badgeName=${resBadge.badge != null && resBadge.badge.name != null ? resBadge.badge.name : ""}`);
   }
   else {
     loggerError(`Error: API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`); 
@@ -188,7 +189,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
   try {
     let badge = badgeMetaData.badge;
-    resBadge = { badge: badge };
+    resBadge.badge = badge;
 
     if(typeof(badgeMetaData.badge) === 'string' && badgeMetaData.badge.startsWith('http')) {
       //Badge情報をメタデータ埋め込みURLから取得
