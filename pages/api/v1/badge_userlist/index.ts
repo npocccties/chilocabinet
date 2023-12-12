@@ -240,8 +240,8 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
           }),
         ]);
 
-        console.debug(dbResult1);
-        console.debug(dbResult2);
+        loggerDebug(dbResult1);
+        loggerDebug(dbResult2);
       }
       catch(e) {
         exp = e;
@@ -266,11 +266,12 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
           //現在日時の文字列書式をCSV出力用に変換
           const date = badge.badgeIssuedOn;
           const dateStr = `${date.getFullYear().toString()}/` +
-              `${date.getMonth().toString().padStart(2,'0')}/` +
-              `${date.getDay().toString().padStart(2,'0')} ` +
+              `${(date.getMonth()+1).toString().padStart(2,'0')}/` +
+              `${date.getDate().toString().padStart(2,'0')} ` +
               `${date.getHours().toString().padStart(2,'0')}:` +
               `${date.getMinutes().toString().padStart(2,'0')}:` +
               `${date.getSeconds().toString().padStart(2,'0')}`;
+
           return {...badge, badgeIssuedOn: dateStr};
         }
         else {
