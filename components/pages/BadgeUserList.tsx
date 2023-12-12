@@ -203,10 +203,7 @@ export const BadgeUserList = () => {
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧(CSVエクスポート))");
         console.log(err);
-        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。\r\n" +
-          "\r\nstatus: " + err.response.status +
-          "\r\nmsg: " + err.response.data.msg
-        });
+        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。"});
         setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
       });
     }
@@ -426,11 +423,11 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 300, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
-                  { minSize: 300, header: '提出者名', accessorKey: 'name', enableSorting: false, enableColumnActions: false },
-                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 300, header: 'ID', accessorKey: 'id' },
+                  { minSize: 300, header: '提出者名', accessorKey: 'name' },
+                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'mail' },
                   { minSize: 50, header: '提出日', accessorKey: 'submittedDate' },
-                  { minSize: 210, header: 'CSVファイル未出力', accessorKey: 'downloaded'},
+                  { minSize: 210, header: 'CSVファイル未出力', accessorKey: 'downloaded', enableGlobalFilter: false, enableColumnFilter: false, enableFilterMatchHighlighting : false },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableGlobalFilterModes
@@ -475,8 +472,8 @@ export const BadgeUserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 400, header: 'ID', accessorKey: 'id', enableSorting: false, enableColumnActions: false },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail', enableSorting: false, enableColumnActions: false },
+                  { minSize: 400, header: 'ID', accessorKey: 'id' },
+                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail' },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                 ]}
                 data={tableData == null ? [] : tableDataNotApp}

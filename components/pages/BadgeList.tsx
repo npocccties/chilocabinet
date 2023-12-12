@@ -214,6 +214,7 @@ export const BadgeList = () => {
                convert(o.userID),
                convert(o.badgeName),
                convert(o.badgeDescription),
+               convert(o.badgeIssuerName),
                convert(o.badgeIssuedOn),
              ].join(',');
           }).join('\r\n');
@@ -244,10 +245,7 @@ export const BadgeList = () => {
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧(CSVエクスポート))");
         console.log(err);
-        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。\r\n" +
-          "\r\nstatus: " + err.response.status +
-          "\r\nmsg: " + err.response.data.msg
-        });
+        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。"});
         setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
       });
     }
@@ -403,7 +401,7 @@ export const BadgeList = () => {
                 columns={[
                   { minSize: 200, header: '能力バッジ名', accessorKey: 'name', enableGlobalFilter: false },
                   { minSize: 200, header: '発行者', accessorKey: 'issuer', enableGlobalFilter: false },
-                  { minSize: 200, header: '学習サービス', accessorKey: 'service', enableGlobalFilter: false },
+                  { minSize: 200, header: '学習サービス名', accessorKey: 'service', enableGlobalFilter: false },
                   { minSize: 50, maxSize: 100, header: '提出者数', accessorKey: 'count', enableGlobalFilter: false },
                 ]}
                 data={tableData == null ? [] : tableData}
