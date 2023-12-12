@@ -304,18 +304,17 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 300, header: 'ID', accessorKey: 'userID', enableSorting: false },
-                  { minSize: 300, header: '氏名', accessorKey: 'userName', enableSorting: false },
+                  { minSize: 300, header: 'ID', accessorKey: 'userID' },
+                  { minSize: 300, header: '氏名', accessorKey: 'userName' },
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableRowNumbers
-                enableGlobalFilterModes
+                globalFilterFn="contains"
                 rowNumberMode={"original"}
                 enableDensityToggle={false}
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
                 enableHiding={false}
-                enableColumnActions={false}
                 initialState={{density: 'comfortable', showGlobalFilter: true}}
                 muiTablePaginationProps={{
                   rowsPerPageOptions: [
@@ -351,8 +350,8 @@ export const UserList = () => {
             <ThemeProvider theme={defaultMaterialTheme}>
               <MaterialReactTable
                 columns={[
-                  { minSize: 300, header: 'ID', accessorKey: 'userID', enableColumnActions: false, enableSorting: false },
-                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'userEMail', enableColumnActions: false, enableSorting: false },
+                  { minSize: 300, header: 'ID', accessorKey: 'userID' },
+                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'userEMail' },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedAt' },
                 ]}
                 data={tableDataNotApp == null ? [] : tableDataNotApp}
@@ -454,6 +453,9 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       else if(cells[1].length > 256) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が文字数上限（256）を超えています。`;
       }
+      else if(cells[0].match(/[\\'"`\\t\r\n]/) || cells[1].match(/[\\'"`\t\r\n]/)) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：対応できない文字が含まれています(\\'"\`\t\r\nなど)`;
+      }
       else {
         for(let checkline=0; checkline<=listArray.length; checkline++) {
           if(checkline == listArray.length) {
@@ -547,7 +549,7 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       exp: error,
     };
 
-    setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "学習者リストの更新に失敗しました。\r\n" + msg});
+    setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "学習者リストの更新に失敗しました。"});
     setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     setUserListUpload(userListUpload);
   });
