@@ -356,6 +356,7 @@ export const UserList = () => {
                 ]}
                 data={tableDataNotApp == null ? [] : tableDataNotApp}
                 enableGlobalFilterModes
+                globalFilterFn="contains"
                 enableDensityToggle={false}
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}

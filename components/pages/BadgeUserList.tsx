@@ -431,6 +431,7 @@ export const BadgeUserList = () => {
                 ]}
                 data={tableData == null ? [] : tableData}
                 enableGlobalFilterModes
+                globalFilterFn="contains"
                 enableDensityToggle={false}
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
@@ -478,6 +479,7 @@ export const BadgeUserList = () => {
                 ]}
                 data={tableData == null ? [] : tableDataNotApp}
                 enableGlobalFilterModes
+                globalFilterFn="contains"
                 enableDensityToggle={false}
                 enableFullScreenToggle={false}
                 enableColumnFilters={false}
