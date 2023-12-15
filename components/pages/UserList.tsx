@@ -454,8 +454,8 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       else if(cells[1].length > 256) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が文字数上限（256）を超えています。`;
       }
-      else if(cells[0].match(/[\\'"`\\t\r\n]/) || cells[1].match(/[\\'"`\t\r\n]/)) {
-        msg = `CSVファイルフォーマット異常(${i+1}行目)：対応できない文字が含まれています(\\'"\`\t\r\nなど)`;
+      else if(cells[0].match(/[\\,'"`\t\r\n]/) || cells[1].match(/[\\,'"`\t\r\n]/)) {
+        msg = `CSVファイルフォーマット異常(${i+1}行目)：対応できない文字が含まれています \\ , ' " \` \\t \\r \\n など`;
       }
       else {
         for(let checkline=0; checkline<=listArray.length; checkline++) {
