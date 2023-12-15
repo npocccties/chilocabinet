@@ -36,7 +36,7 @@ docker-compose.dev-local.yml ファイルの command: 行を以下のように�
 # command: npm run dev
 ```
 
-コンテナ起動後にキャビネットアプリ起動する手順
+コンテナ起動後にキャビネットアプリ起動する手順」
 appコンテナ内に移動
 ```
 script/inapp.sh
