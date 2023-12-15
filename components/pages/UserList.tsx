@@ -438,7 +438,12 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
 
     let cells = parseCsvLine(lines[i]);
 
-    if(i + 1 == lines.length && cells.length == 1 && cells[0].match(' *')) {
+    //前後の空白を削除
+    cells = cells.map((o) => {
+      return o == null ? null : o.trim();
+    });
+
+    if(i + 1 == lines.length && cells.length == 1 && cells[0] == "") {
       //最終行が空文の場合何も処理しない
     }
     else if(cells.length >= 2) {
@@ -486,12 +491,10 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
     return;
   }
 
-  statePage = {...statePage, event: AppEvent.CommUploadCSV, lock: true};
-  setStatePage(statePage);
-
   userListUpload = {...userListUpload, connecting: true, success: false, msg: null, exp: null};
-  statePage = {...statePage, lock: true, event: AppEvent.CommUploadUserList};
   setUserListUpload(userListUpload);
+
+  statePage = {...statePage, event: AppEvent.CommUploadCSV, lock: true};
   setStatePage(statePage);
  
   const formdata = {
