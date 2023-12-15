@@ -277,7 +277,7 @@ export const UserList = () => {
             <Box color={"blue"} textDecoration={"underline"}
             >
               <Link _hover={{fontWeight: "bold"}} onClick={() => setStatePage({...statePage, page: "UserListNotApp"})}>
-                ※提出済みで学習者一覧に登録のないメールアドレスがあります。
+                ※提出済みバッジ内に学習者一覧に登録のないIDがあります。
               </Link>
             </Box>
             <Button color={"black"} backgroundColor={"lightgray"} fontSize={"12px"} h={"22px"} m={"8px"} 
