@@ -290,7 +290,7 @@ export const UserList = () => {
         { showTableNotApp == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
             <Box>
-              バッジが提出済みですが、学習者登録がなされていないメールアドレスです
+              バッジが提出済みですが、学習者登録がなされていないIDです
             </Box>
             <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
               onClick={() => setStatePage({...statePage, page: "UserList"})}
