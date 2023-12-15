@@ -30,6 +30,7 @@ make down-local
 ```
 
 コンテナ起動時にキャビネットを自動起動したくない場合
+
 docker-compose.dev-local.yml ファイルの command: 行を以下のようにコメントアウトしてください。
 ```
 # command: npm run dev
