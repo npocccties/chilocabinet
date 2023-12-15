@@ -18,23 +18,30 @@ makeコマンドがインストールされていない場合は、適宜イン�
 make build-local
 ```
 
-コンテナ起動
+コンテナ起動（キャビネットアプリ開始）
 ```
 make up-local
 # make up-d-localの場合はdaemonで起動
 ```
 
+コンテナのdown（キャビネットアプリ停止）
+```
+make down-local
+```
+
+コンテナ起動時にキャビネットを自動起動したくない場合
+docker-compose.dev-local.yml ファイルの command: 行を以下のようにコメントアウトしてください。
+```
+# command: npm run dev
+```
+
+コンテナ起動後にキャビネットアプリ起動する手順
 appコンテナ内に移動
 ```
 script/inapp.sh
 ```
 
-コンテナのdown
-```
-make down-local
-```
-
-アプリケーションの移動（appコンテナ内）
+キャビネットアプリ起動（appコンテナ内）
 ```
 npm run dev
 ```
