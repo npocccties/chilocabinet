@@ -127,8 +127,7 @@ export const BadgeUserList = () => {
           success: false,
         };
 
-        
-        setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+        setStatePage({...statePage, event: null, lock: false}); 
         setBadgeUserList(update);
       });
     }
