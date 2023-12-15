@@ -155,3 +155,18 @@ https://nextjs.org/docs/pages/building-your-application/configuring/environment-
 |baseURL|アプリケーション起動時のURL|http://localhost:3000|
 |clientName|アプリケーションの名称|chilowallet|
 |LOG_LEVEL|ログレベルの設定|-|
+
+## configの設定値
+/config/constants.ts に設定されている固定値
+
+基本的に設定の変更は不要です。
+
+```
+export const EXPORT_CSV_VER="20231115";
+export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/results";
+```
+
+| 変数名                               | 説明                                        | 
+| :----------------------------------- | :------------------------------------------ | 
+|EXPORT_CSV_VER|バッジ提出者リストCSVを出力する際にCSVバージョンカラムに設定される文字列です|
+|OPENBADGE_VERIFIER_URL|ウォレットからバッジ提出時にバッジの妥当性確認のために使用する検証サイトURLです|
