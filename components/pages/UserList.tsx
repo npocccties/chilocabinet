@@ -198,7 +198,6 @@ export const UserList = () => {
   }
 
   else if(statePage.event == AppEvent.CommUploadCSV) {
-    showUploadCsv = true;    
     useSpinner = true;
   }
 
@@ -272,7 +271,8 @@ export const UserList = () => {
         }
         { ((showTableNotApp == false &&
             tableDataNotApp != null &&
-            tableDataNotApp.length > 0) == false) ? (<></>) : (
+            tableDataNotApp.length > 0 &&
+            useSpinner == false) == false) ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"16pt"}>
             <Box color={"blue"} textDecoration={"underline"}
             >
