@@ -117,7 +117,7 @@ export const BadgeUserList = () => {
       })
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧情報)");
-        console.log(err);
+        console.log(err.response == null ? err : err.response.data); 
 
         let update = {
           list: null,
@@ -127,7 +127,8 @@ export const BadgeUserList = () => {
           success: false,
         };
 
-        setStatePage({...statePage, event: null, lock: false}); 
+        
+        setStatePage({...statePage, event: null, lock: false});
         setBadgeUserList(update);
       });
     }
@@ -201,7 +202,7 @@ export const BadgeUserList = () => {
       })
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧(CSVエクスポート))");
-        console.log(err);
+        console.log(err.response == null ? err : err.response.data); 
         setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。"});
         setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
       });

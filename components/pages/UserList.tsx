@@ -126,7 +126,7 @@ export const UserList = () => {
       .catch((error) => {
 
         console.log("ERROR: コンポーネント(UserList) サーバデータ取得エラー(学習者一覧情報)");
-        console.log(error);
+        console.log(error.response == null ? error : error.response.data);
 
         const updateUserID = {
           list: null,
@@ -185,15 +185,15 @@ export const UserList = () => {
   let messageTxt = null;
   let useSpinner = false;
 
-  if ( statePage.page != AppPage.UserList && statePage.page != AppPage.UserListNotApp) {
+  if (statePage.page != AppPage.UserList && statePage.page != AppPage.UserListNotApp) {
     return ( <></> );
   }
 
-  if( startComm || userList.connecting == true) {
+  if(startComm || userList.connecting == true) {
     useSpinner = true;
   }
 
-  else if( userList.success == false || tableData == null ) {
+  else if(userList.success == false || tableData == null ) {
     messageTxt = '＜データ取得失敗＞';
   }
 
@@ -433,15 +433,18 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
   //ユーザーIDフォーマットチェック正規表現  
   //const regstr = '^[a-zA-Z0-9_+-]+(.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*.)+[a-zA-Z]{2,}$';
 
+  //CSVファイルを改行で分割
   lines = text.split(/\r\n|\n/);
+
   for (let i = 0; i < lines.length && msg == null; ++i) {
 
+    //CSVファイルをカンマで分割しパース
     let cells = parseCsvLine(lines[i]);
 
     //前後の空白を削除
     cells = cells.map((o) => {
       return o == null ? null : o.trim();
-    });
+    }); 
 
     if(i + 1 == lines.length && cells.length == 1 && cells[0] == "") {
       //最終行が空文の場合何も処理しない
@@ -450,7 +453,7 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       if(cells[0].match('^ *$')) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'ID'が未設定です`;
       }
-      else if(cells[0].match('^ *$')) {
+      else if(cells[1].match('^ *$')) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が未設定です`;
       }
       else if(cells[0].length > 254) {

@@ -110,7 +110,7 @@ export const BadgeList = () => {
       })
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeList) サーバデータ取得エラー(能力バッジ一覧情報)");
-        console.log(err);
+        console.log(err.response == null ? err : err.response.data);
 
         let update = {
           list: null,
@@ -137,14 +137,13 @@ export const BadgeList = () => {
 
       axios.post<any>('/api/v1/cleardb', formdata, headerdata)
       .then((resp) => {
-        //console.log(resp);
         console.log("DBクリア成功");
 
         statePage = {...statePage, event: AppEvent.OpenPage, lock: true};
         setStatePage(statePage);
       })
       .catch((err) => {
-        console.log(err);
+        console.log(err.response == null ? err : err.response.data);
         console.log("DBクリア失敗");
 
         statePage = {...statePage, event: null, lock: false};
@@ -244,7 +243,7 @@ export const BadgeList = () => {
       })
       .catch((err) => {
         console.log("ERROR: コンポーネント(BadgeUserList) サーバデータ取得エラー(能力バッジ提出者一覧(CSVエクスポート))");
-        console.log(err);
+        console.log(err.response == null ? err : err.response.data);
         setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "サーバーからの情報取得に失敗しました。"});
         setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
       });
