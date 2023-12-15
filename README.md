@@ -125,13 +125,16 @@ npx prisma db seed
 .env
 | 変数名                               | 説明                                        | デフォルト値         |
 | :----------------------------------- | :------------------------------------------ | :------------------- |
-|SSL_CERTS_DIR|サーバー証明書の配置ディレクトリ|・ディレクトリの末尾には `/` は付与しないこと<br>・本番環境では下記の命名でファイルを配置しておくこと<br>　`signed.crt`: サーバー証明書<br>　`domain.key`: サーバー証明書の秘密鍵|
-|ALLOWED_HOSTS|公開ホスト名|本番リリースする際は本番サーバーのホスト名を設定してください|
-|DB_HOST|DBのホスト名|docker-compose.*.yml に記載されている`db`がホスト名|
-|DB_NAME|DB名|-|
-|DB_USER|DBのユーザ名|-|
-|DB_PASS|DBのパスワード|-|
-|DATABASE_URL|接続先データベースのURL|-|
+|SSL_CERTS_DIR|サーバー証明書の配置ディレクトリ|・ディレクトリの末尾には `/` は付与しないこと<br>・本番環境では下記の命名でファイルを配置しておくこと<br>　`signed.crt`: サーバー証明書<br>　`domain.key`: サーバー証明書の秘密鍵|必須|
+|ALLOWED_HOSTS|公開ホスト名|本番リリースする際は本番サーバーのホスト名を設定してください|必須|
+|DB_HOST|DBのホスト名|docker-compose.*.yml に記載されている`db`がホスト名|必須|
+|DB_NAME|DB名|-|必須|
+|DB_USER|DBのユーザ名|-|必須|
+|DB_PASS|DBのパスワード|-|必須|
+|DATABASE_URL|接続先データベースのURL|-|必須|
+|LOG_LEVEL|ログレベル<br>'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'|info|必須|
+|LOG_MAX_SIZE|ログファイルサイズ<br>単位には k / m / g のいずれか指定|100m|必須|
+|LOG_MAX_FILE|ログファイルの世代数|7|必須|
 
 ## Next.jsアプリケーション用
 Next.jsアプリケーションでは、環境毎に以下のパターンで.envファイルを参照します。
