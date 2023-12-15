@@ -51,7 +51,6 @@ async function proc_download(req, res)
   catch(exp) {
     loggerError("ERROR: API userlist, get userlist, DB Exception.");
     loggerError(exp);
-    return;
   };
 
   if(userID == null) {
