@@ -442,10 +442,10 @@ async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpl
       //最終行が空文の場合何も処理しない
     }
     else if(cells.length >= 2) {
-      if(cells[0].match(' +')) {
+      if(cells[0].match('^ *$')) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'ID'が未設定です`;
       }
-      else if(cells[1].match(' +')) {
+      else if(cells[0].match('^ *$')) {
         msg = `CSVファイルフォーマット異常(${i+1}行目)：'氏名'が未設定です`;
       }
       else if(cells[0].length > 254) {
