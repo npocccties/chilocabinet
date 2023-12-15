@@ -146,8 +146,8 @@ export const BadgeList = () => {
         console.log(err.response == null ? err : err.response.data);
         console.log("DBクリア失敗");
 
-        statePage = {...statePage, event: null, lock: false};
-        setStatePage(statePage);
+        setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "データベースのクリアにに失敗しました。"});
+        setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
       });
     }
 
