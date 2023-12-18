@@ -206,7 +206,7 @@ nginx.conf ファイルの以下箇所を編集します。
 
 ```   
 server {
-    server_name dev-cabinet.oku.cccties.org;    # 本番用に差し替えること
+    #server_name example.org;    # 本番用に差し替えること
 ```
 
 | 変数名                               | 説明                                        |必須/任意| 
