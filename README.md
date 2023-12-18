@@ -224,7 +224,6 @@ server {
     server_name dev-cabinet.oku.cccties.org;    # 本番用に差し替えること
 ```
 
-
 | 変数名                               | 説明                                        | 
 | :----------------------------------- | :------------------------------------------ | 
 |server/server_name|キャビネットWebアプリのドメイン名を指定します。（例）dev-cabinet.oku.cccties.org|
