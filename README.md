@@ -15,34 +15,34 @@ makeコマンドがインストールされていない場合は、適宜イン�
 
 コンテナのビルド
 ```
-make build-local
+docker compose -f docker-compose.dev-local.yml build
 ```
 
 コンテナ起動（キャビネットアプリ開始）
 ```
-make up-local
-# make up-d-localの場合はdaemonで起動
+docker compose -f docker-compose.dev-local.yml up -d
 ```
 
 コンテナのdown（キャビネットアプリ停止）
 ```
-make down-local
+docker compose -f docker-compose.dev-local.yml down
 ```
 
-コンテナ起動時にキャビネットを自動起動したくない場合
+コンテナ起動と同時にキャビネットアプリが自動開始します、自動起動としたくない場合は
 
 docker-compose.dev-local.yml ファイルの command: 行を以下のようにコメントアウトしてください。
 ```
 # command: npm run dev
 ```
 
-コンテナ起動後にキャビネットアプリ起動する手順」
-appコンテナ内に移動
+自動起動でない場合、コンテナ起動後にキャビネットアプリ起動する手順
+
+chilocabinetコンテナ内に移動
 ```
 script/inapp.sh
 ```
 
-キャビネットアプリ起動（appコンテナ内）
+chilocabinetコンテナ内でキャビネットアプリ起動
 ```
 npm run dev
 ```
@@ -75,14 +75,14 @@ npx prisma studio
    ```
    cd /work
    ```
-1. chilowallet のソースを取得
+1. chilocabinet のソースを取得
    ```
-   git clone https://github.com/npocccties/chilowallet.git
+   git clone https://github.com/npocccties/chilocabinet.git
    ```
-   * 既にディレクトリが存在するならば `sudo rm -rf chilowallet` にて削除してください
-1. chilowallet へ移動
+   * 既にディレクトリが存在するならば `sudo rm -rf chilocabinet` にて削除してください
+1. chilocabinet へ移動
    ```
-   cd chilowallet
+   cd chilocabinet
    ```
 1. `*.sh` に権限付与
    ```
@@ -99,17 +99,51 @@ npx prisma studio
     （パスワードを追加入力）
     ```
 1. デプロイ
-  - 開発サーバー
-    ```
-    make build-dev
-    ```
-  - 停止（開発サーバー）
-    ```
-    make down-dev
-    ```
+   ```
+   ./app_start.sh
+   ```
+   * 権限付与後の `app_start.sh` は何度でも実行可能です
+
+1. 備考  
+   コンテナ起動  
+   ```
+   chilocabinet/app_start.sh
+   ```
+
+   コンテナ停止  
+   ```
+   chilocabinet/app_stop.sh
+   ```
+   * DBが `/var/chilocabinet.dump` にバックアップされます  
+
+   コンテナ再起動  
+   ```
+   chilocabinet/app_restart.sh
+   ```
+   * `app_stop.sh` と `app_start.sh` を呼びます
+
+   DBバックアップ  
+   ```
+   chilocabinet/server_db_backup.sh
+   ```
+   * DBが `/var/chilocabinet.dump` にダンプ出力されます  
+   * 上記ファイルは、環境変数 `DUMP_BACKUP_DIR` のディレクトリへ .tar.gz 形式で圧縮および格納されます
+   * 古い圧縮ファイルは削除されます（環境変数 `DUMP_BACKUP_COUNT` で保持する期間を日数で指定）
+   
+   DBリストア  
+   ```
+   chilocabinet/server_db_restore.sh
+   ```
+   * `/var/chilocabinet.dump` にあるバックアップデータをもとにDBをリストア（復元）します  
+
+   全てのコンテナログの確認  
+   ```
+   docker container logs -f 
+   ```
+   * -f の後ろにコンテナ名（chilocabinetやdb等）を入れると該当コンテナのみのログが見れます  
 
 ## テストデータ作成
-コンテナ起動後、chilowallet-appに入り、下記を実行
+コンテナ起動後、chilocabinetに入り、下記を実行
 ```
 npx prisma db seed
 ```
