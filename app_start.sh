@@ -9,5 +9,5 @@ if ! docker network ls | grep db_network > /dev/null 2>&1; then
 fi
 docker compose -f docker-compose.production-db.yml up -d
 docker container stop chilocabinet 2>&1 || true
-docker compose -f docker-compose.production.yml up -d --build
+docker compose -f docker-compose.production.yml -p chilocabinet  up -d  --build 
 /bin/sh ./server_db_restore.sh
