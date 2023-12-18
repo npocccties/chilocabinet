@@ -215,3 +215,17 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 | :----------------------------------- | :------------------------------------------ | 
 |EXPORT_CSV_VER|バッジ提出者リストCSVを出力する際にCSVバージョンカラムに設定される文字列です|
 |OPENBADGE_VERIFIER_URL|ウォレットからバッジ提出時にバッジの妥当性確認のために使用する検証サイトURLです|
+
+## nginxの設定
+nginx.conf ファイルの以下箇所を編集します。
+
+```   
+server {
+    server_name dev-cabinet.oku.cccties.org;    # 本番用に差し替えること
+```
+
+
+| 変数名                               | 説明                                        | 
+| :----------------------------------- | :------------------------------------------ | 
+|server/server_name|キャビネットWebアプリのドメイン名を指定します。（例）dev-cabinet.oku.cccties.org|
+
