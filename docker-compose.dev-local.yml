@@ -13,7 +13,7 @@ services:
     volumes:
       - ./:/app
       - node_modules:/app/node_modules
-    container_name: chilocabinet
+    container_name: chilocabinet-app
     environment:
       - LOG_LEVEL=$LOG_LEVEL
     depends_on:
