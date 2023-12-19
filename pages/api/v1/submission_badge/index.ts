@@ -129,6 +129,15 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
   let vcSubEMail;   //VC内, OpenBadge対象EMail, OpenBadge検証に使用
   let vcPhoto;      //VC内, OpenBadge画像データ, iTxt領域にメタデータを含む
   let vcExp;        //VC有効期限
+
+  try {
+    loggerDebug("API submission_badge: VCJWT exp date = " + new Date(vcPayload.exp * 1000));
+    loggerDebug("API submission_badge: VCJWT iat date = " + new Date(vcPayload.iat * 1000));
+  }
+  catch(exp) {
+    //no act
+  }
+
   try {
     vcSubEMail = vcPayload.vc.credentialSubject.email;
     vcExp = vcPayload.exp;
@@ -636,7 +645,7 @@ export const validateOpenBadge = async (
   }
 
   loggerDebug(retValidate);
-  loggerDebug("END openBadgeValidator ret=", retValidate.data.report.valid);
+  loggerDebug("END openBadgeValidator ret=" + retValidate.data.report.valid);
 
   let result;
   let msg;
