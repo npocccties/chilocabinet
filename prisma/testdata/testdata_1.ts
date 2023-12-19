@@ -301,7 +301,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_100@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_01_100@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -314,7 +314,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_101@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_03_101@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -327,7 +327,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_101@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_03_101@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -340,7 +340,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_102@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_09_102@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -353,7 +353,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_103@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_07_103@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -366,7 +366,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_104@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_05_104@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -379,7 +379,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_105@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_06_105@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -392,7 +392,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_106@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_07_106@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -405,7 +405,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_107@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_01_107@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -418,7 +418,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_108@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_09_108@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -431,7 +431,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_109@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_02_109@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -444,7 +444,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_110@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_01_110@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -457,7 +457,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_111@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_09_111@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -470,7 +470,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_112@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_81_112@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -483,7 +483,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_113@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_21_113@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -496,7 +496,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_114@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_56_114@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -509,7 +509,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_115@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_19_115@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -522,7 +522,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_116@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_92_116@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -535,7 +535,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_117@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_41_117@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -548,7 +548,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_118@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_30_118@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
@@ -561,7 +561,7 @@ export const SubmittedBadges_Test_1: SubmittedBadges[] = [
   },
   {
     userID: "test_user_119@mail.x.server",
-    userEMail: "email_01@mail.server",
+    userEMail: "email_60_119@mail.server",
     submittedAt: dateToJtc(faker.date.anytime()),
     badgeName: "テストバッジＸ",
     badgeClassId: "http://test_badge_xx",
