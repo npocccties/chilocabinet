@@ -181,7 +181,6 @@ export const UserList = () => {
   let showTableNotApp = false;
   let showUploadCsv = false;
   let enableUploadCsv = false;
-  let showUpdateCsv = false
   let messageTxt = null;
   let useSpinner = false;
 

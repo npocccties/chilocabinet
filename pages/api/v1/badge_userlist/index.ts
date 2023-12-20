@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
+import {loggerError, loggerInfo, loggerDebug } from "@/lib/logger";
 
 //<---- API バッジ提出者一覧取得・CSVエクスポート情報取得 ---->
 

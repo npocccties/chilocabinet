@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
-import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
+import {loggerError, loggerInfo, loggerDebug } from "@/lib/logger";
 
 //<---- 学習者一覧取得 ---->
 
@@ -109,11 +109,6 @@ async function proc_upload(req, res) {
   let upload = null;
 
   //<---- パラメータ内容のチェック ---->
-
-  type TypeUploadData = {
-    name: string,
-    id: string,
-  };
 
   if(req.body.upload == null) {
     success = false;

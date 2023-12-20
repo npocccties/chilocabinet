@@ -8,15 +8,8 @@ import axios from "axios";
 const pngitxt = require("png-itxt");
 const Through = require("stream").PassThrough;
 
-import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
+import {loggerError, loggerInfo, loggerDebug } from "@/lib/logger";
 import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
-
-type ReturnStatus = {
-  fail: boolean,
-  status_code: number | null,
-  reason_code: number | null,
-  reason_msg: string | null,
-}
 
 const retStatusInit = {
   fail: false,
@@ -26,15 +19,15 @@ const retStatusInit = {
 }
 
 //デバッグ用データ
-const debugData = {
-  inputJwt: null,
-  privateKey: null,
-  publicKey: null,
-  skipCheckVcExp: false,
-  skipCheckVcSign: false,
-  skipCheckBadgeEMailSalt: false,
-  skipCheckBadgeMetaData: false,
-} as const;
+//const debugData = {
+//  inputJwt: null,
+//  privateKey: null,
+//  publicKey: null,
+//  skipCheckVcExp: false,
+//  skipCheckVcSign: false,
+//  skipCheckBadgeEMailSalt: false,
+//  skipCheckBadgeMetaData: false,
+//} as const;
 
 //<---- API ウォレットからのバッジ提出 ---->
 
@@ -113,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, resBadge)
 {
   //入力パラメータチェック
-  let { retStatus, vcHeader, vcPayload, vcSignBin } = await checkInputParam(userID, userEMail, vcJwt);
+  let { retStatus, vcHeader, vcPayload } = await checkInputParam(userID, userEMail, vcJwt);
 
   if(retStatus.fail == true) {
     return retStatus;
@@ -262,7 +255,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
   //DB登録
   let newDbData;
   try {
-    const [dbResult1, dbResult2] = await prisma.$transaction([
+    const [/*dbResult1*/, dbResult2] = await prisma.$transaction([
       prisma.submittedBadges.deleteMany({
         where: {
           userID: userID,
@@ -293,7 +286,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
     loggerError(exp);
   }
 
-  if(newDbData == false) {
+  if(newDbData == null) {
     loggerError(`ERROR: API submission_badge: DB insert fail, to SubmittedBadges table`);
 
     retStatus.fail = true;
@@ -319,7 +312,6 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
     retStatus: retStatus,
     vcHeader: null,
     vcPayload: null,
-    vcSignBin: null,
   };
 
    //パラメータ存在チェック
@@ -378,17 +370,15 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
     return retParam;
   }
 
-  const [ jwtHeaderBase64, jwtPayloadBase64, jwtSignatureBase64 ] = jwtSeparate;
+  const [ jwtHeaderBase64, jwtPayloadBase64, ] = jwtSeparate;
 
   //BASE64デコード
   let vcHeaderStr  = null;
   let vcPayloadStr = null;
-  let vcSignBin = null;
 
   try {
     vcHeaderStr = base64url.decode(jwtHeaderBase64);
     vcPayloadStr = base64url.decode(jwtPayloadBase64);
-    vcSignBin = base64url.decode(jwtSignatureBase64);
   } catch (exceptionVar) {
     retStatus.fail = true;
     retStatus.status_code = 400;
@@ -423,7 +413,6 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
     retStatus,
     vcHeader,
     vcPayload,
-    vcSignBin,
   };
 
   return retParam;

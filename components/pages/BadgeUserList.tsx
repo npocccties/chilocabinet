@@ -22,7 +22,6 @@ export const BadgeUserList = () => {
   const [badgeUserListOrg, setBadgeUserList] = useAppState_BadgeUserList();
   const [stateDialogOrg, setStateDialog] = useAppState_Dialog();
   const [resultDialog, setResultDialog] = useState(null);
-  const [fileHandle, setFileHandle] = useState(null);
 
   let statePage = statePageOrg;
   let badgeUserList = badgeUserListOrg;

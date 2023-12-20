@@ -11,7 +11,7 @@ export interface LayoutProps {
 }
 
 export const Layout: React.VFC<LayoutProps> = ({ children, maxW, textAlign, align }) => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { onOpen: onOpen} = useDisclosure();
   return (
     <Flex minHeight={"100vh"} direction={"column"}>
       <Header onOpen={onOpen} />

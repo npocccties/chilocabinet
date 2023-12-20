@@ -22,7 +22,7 @@ import {
 export const Dialog = () => {
 
   const [statePage, setStatePage] = useAppState_Page();
-  const [stateDialog, setStateDialog] = useAppState_Dialog();
+  const [stateDialog] = useAppState_Dialog();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
 

@@ -136,7 +136,7 @@ export const BadgeList = () => {
       };
 
       axios.post<any>('/api/v1/cleardb', formdata, headerdata)
-      .then((resp) => {
+      .then(() => {
         console.log("DBクリア成功");
 
         statePage = {...statePage, event: AppEvent.OpenPage, lock: true};
@@ -407,7 +407,7 @@ export const BadgeList = () => {
                 muiTableBodyCellProps={ (cell) => {
                   return cell.column.id != 'count' ? {} :
                   {
-                    onClick: (event) => {
+                    onClick: () => {
                       onClick_moveBadgeUserList(cell.row.id);
                     },
                     sx: {

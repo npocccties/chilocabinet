@@ -22,8 +22,7 @@
     "es6": true
   },
   "rules": {
-    // TODO: no-unused-vars no-irregular-whitespace はOSSからの移行中はオフ
-    "no-unused-vars": "off",
+    "no-unused-vars": ["error"],
     "no-irregular-whitespace": "off",
     "unused-imports/no-unused-imports": "warn"
     // "import/order": [

@@ -13,7 +13,7 @@ type Props = {
   onOpen: () => void;
 };
 
-export const Header: React.FC<Props> = ({ onOpen }) => {
+export const Header: React.FC<Props> = () => {
 
   const [appStatePage, setAppStatePage] = useAppState_Page(); 
 
