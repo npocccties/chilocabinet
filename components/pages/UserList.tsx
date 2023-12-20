@@ -423,12 +423,10 @@ async function uploadCSV(statePage, setStatePage, userListUpload, setUserListUpl
 
 async function uploadCSV2(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, file)
 {
-  let handle = null;
   let text = null;
   let lines = null;
   let listArray = [];
   let msg = null;
-  let input = null;
 
   try {
     text = await file.text();      
