@@ -51,7 +51,7 @@ export const UserList = () => {
     //CSVアップロード確認ダイアログを閉じる => ダウンロード処理を開始
     if(resultDialog.type == 4 && resultDialog.yesno === true) {
       startOpenFile = true;
-      statePage = {...statePage, event: AppEvent.OpenUploadCSV, lock: true};
+      //statePage = {...statePage, event: AppEvent.OpenUploadCSV, lock: true};
     }
 
     //CSVアップロード確認ダイアログを閉じる => 学習者リスト表示を更新
@@ -143,7 +143,7 @@ export const UserList = () => {
     //<---- CSVアップロードファイル選択ダイアログ表示 ---->
 
     if(startOpenFile == true) {
-      uploacCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog);
+      uploadCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog);
     }
   });
 
@@ -398,29 +398,43 @@ export const UserList = () => {
 
 //<---- CSVファイルアップロード処理 ---->
 
-async function uploacCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog)
+async function uploadCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog)
+{
+  let input = null; 
+
+  let handler = (() => {
+    if(input != null && input.files != null && input.files.length >= 1) {
+      setStatePage({...statePage, event: AppEvent.OpenUploadCSV, lock: true});     
+      uploadCSV2(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, input.files[0]);
+    }
+  });
+
+  try {
+    input = document.createElement('input');
+    input.type = "file";
+    input.accept = "text/csv";
+    input.addEventListener('input', handler)
+    input.click();
+  }
+  catch (err) { //no act
+    console.log(err);
+  }
+}
+
+async function uploadCSV2(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, file)
 {
   let handle = null;
-  let file = null;
   let text = null;
   let lines = null;
   let listArray = [];
   let msg = null;
+  let input = null;
 
   try {
-    [handle] = await (window as any).showOpenFilePicker({
-      types: [{accept: {'*/*': ['.csv']}}]
-    });
-
-    file = await handle.getFile()
     text = await file.text();      
   }
   catch (err) { //no act
-  }
-
-  if(handle == null) {
-    setStatePage({...statePage, event: null, lock: false});
-    return;  //ユーザーによるファイル選択キャンセル
+    console.log(err);
   }
 
   if(text == null) {
