@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userID: string = user_id;
   const userEMail: string = user_email;
   let vcJwt: string = badge_vc;
- 
+
   let retStatus = {... retStatusInit};
   let resBadge = {badge: null};
 
@@ -145,10 +145,10 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
     return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.email" };
   }
   if(vcPhoto == null) {
-    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: exp" };
+    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.photo" };
   }
   if(vcExp == null) {
-    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: vc.credentialSubject.photol" };
+    return { fail:true, status_code:400, reason_code:103, reason_msg:"no exist data, JWT Payload: exp" };
   }
 
   //現在時刻取得
@@ -590,7 +590,7 @@ export const validateOpenBadge = async (
   const [, expectedEmailHash] = openBadgeMetadata.recipient.identity.split("$");
   const salt = openBadgeMetadata.recipient.salt;
   let saltVal = salt === null || salt === undefined ? "" : salt;
-  loggerDebug("saltVal=", saltVal);
+  loggerDebug("saltVal=" + saltVal);
   const inputEmailHash = crypto
     .createHash("sha256")
     .update(email + saltVal)
