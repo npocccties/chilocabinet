@@ -24,7 +24,6 @@ export const UserList = () => {
   const [userListUploadOrg, setUserListUpload] = useAppState_UserListUpload();
   const [stateDialogOrg, setStateDialog] = useAppState_Dialog();
   const [resultDialog, setResultDialog] = useState(null);
-  const [uploadFile, setUploadFile] = useState(null);
 
   let statePage = statePageOrg;
   let userList = userListOrg;
@@ -143,18 +142,8 @@ export const UserList = () => {
 
     //<---- CSVアップロードファイル選択ダイアログ表示 ---->
 
-    let file = null;
-    let input = document.getElementById("uploadfile_input_form") as HTMLInputElement;
-
-    if(input != null && input.files != null && input.files.length >= 1) {
-      file = input.files[0];
-    }
-
-    setUploadFile(file);
-
     if(startOpenFile == true) {
-      setUploadFile(null);
-      uploadCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, file);
+      uploadCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog);
     }
   });
 
@@ -194,7 +183,11 @@ export const UserList = () => {
   let enableUploadCsv = false;
   let messageTxt = null;
   let useSpinner = false;
-  let uploadButtonColor = (uploadFile == null) ? "gray.400" : "teal";
+
+  const input = document.getElementById("uploadfile_input_form") as HTMLInputElement;
+  const inputFile = (input != null && input.files != null && input.files.length >= 1) ?
+    input.files[0] : null;
+  const uploadButtonColor = ((inputFile == null) ? "fray.400": "teal");
 
   if (statePage.page != AppPage.UserList && statePage.page != AppPage.UserListNotApp) {
     return ( <></> );
@@ -238,7 +231,7 @@ export const UserList = () => {
   //<---- 学習者リストアップロードボタンハンドラ ---->
 
   const onClickUpload = () => {
-    if(enableUploadCsv && uploadFile != null) {
+    if(enableUploadCsv) {
       setStateDialog({...stateDialog, type: 4, setResult: setResultDialog, title: null, msg: null});
       setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     }
@@ -264,7 +257,7 @@ export const UserList = () => {
 
         { showUploadCsv == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"}>
-            <Box mx={2}>
+            <Box mx={3}>
               <Button color={"white"}
                 fontSize={"12px"}
                 backgroundColor={uploadButtonColor}
@@ -273,18 +266,8 @@ export const UserList = () => {
                 学習者リストアップロード
               </Button>
             </Box>
-            <Box mx={2}>
-              <input id="uploadfile_input_form" type="file" accept="text/csv"
-                onChange={() => {
-                  let input = document.getElementById("uploadfile_input_form") as HTMLInputElement;
-                  if(input != null && input.files != null && input.files.length >= 1) {
-                    setUploadFile(input.files[0]);
-                  }
-                  else {
-                    setUploadFile(null);
-                  }
-                }}
-              />
+            <Box mx={3}>
+              <input id="uploadfile_input_form" type="file" accept="text/csv"/>
             </Box>
           </Flex>
         )}
@@ -426,18 +409,19 @@ export const UserList = () => {
 
 //<---- CSVファイルアップロード処理 ---->
 
-async function uploadCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, file)
+async function uploadCSV(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog)
 {
+  let input = null; 
+
   try {
-    //let input = document.getElementById("uploadfile_input_form");
-    //if(input != null && input.files != null && input.files.length >= 1) {
-    if(file != null) {
+    input = document.getElementById("uploadfile_input_form");
+    if(input != null && input.files != null && input.files.length >= 1) {    
       setStatePage({...statePage, event: AppEvent.OpenUploadCSV, lock: true});
-      uploadCSV2(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, file);
+      uploadCSV2(statePage, setStatePage, userListUpload, setUserListUpload, stateDialog, setStateDialog, input.files[0]);
     }
     else {
-      setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "アップロードするファイルが選択されていません。"});
-      setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
+      //setStateDialog({...stateDialog, type: 10, title: "エラー", msg: "アップロードするファイルが選択されていません。"});
+      //setStatePage({...statePage, event: AppEvent.ShowDialog, lock: true});
     }
   }
   catch (err) { //no act

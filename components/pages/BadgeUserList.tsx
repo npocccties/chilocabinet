@@ -125,7 +125,6 @@ export const BadgeUserList = () => {
           connecting: false,
           success: false,
         };
-
         
         setStatePage({...statePage, event: null, lock: false});
         setBadgeUserList(update);
@@ -188,6 +187,8 @@ export const BadgeUserList = () => {
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+
+          setStatePage({...statePage, event: AppEvent.OpenPage, lock: false});
         };
 
         if(resp.data.exportData != null && resp.data.exportData.length > 0) {
