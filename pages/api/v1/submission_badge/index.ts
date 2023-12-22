@@ -34,7 +34,7 @@ const retStatusInit = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { user_id, user_email, badge_vc } = req.body;
-  const userID: string = ((user_id == null) ? user_email : user_id);
+  const userID: string = user_id;
   const userEMail: string = user_email;
   let vcJwt: string = badge_vc;
  
