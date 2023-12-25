@@ -139,21 +139,16 @@ npx prisma studio
    ```
    * -f の後ろにコンテナ名（chilocabinetやdb等）を入れると該当コンテナのみのログが見れます  
 ## BASIC認証ファイルの配置
-  * BASIC認証ファイルの配置
-     `chilocabinet/authfile/` フォルダにBASIC認証情報を記述した`.htpasswd`ファイルを配置する
-  * BASIC認証ファイルの作成方法
-      * `.htpasswd`ファイルは`htpasswd`コマンド等で作成できる。htpasswdコマンドを使用する場合以下のように行う。
-      ```   
+* BASIC認証ファイルの配置<br>
+  `chilocabinet/authfile/` フォルダにBASIC認証情報を記述した`.htpasswd`ファイルを配置する
+* BASIC認証ファイルの作成方法<br>
+   `.htpasswd`ファイルは`htpasswd`コマンド等で作成できる。htpasswdコマンドを使用する場合以下のように行う。
+    ```   
       htpasswd -c パスワードファイル名 ユーザー名
       （パスワードを追加入力）
-      ```
-* 複数のユーザー認証を設定する場合
-    * `.htpasswd`ファイルは`htpasswd`コマンド等で作成する
-    * `htpasswd`コマンドの使用方法、複数回コマンド実行する事により複数ユーザーのパスワード情報がファイルに追加出力される
-    ```   
-    htpasswd -c パスワードファイル名 ユーザー名
-    （パスワードを追加入力）
     ```
+* 複数のユーザー認証を設定する場合<br>
+  htpasswdコマンドを複数回実行する事により同じ認証ファイルに認証ユーザーが追記される。
 ## テストデータ作成
 コンテナ起動後、chilocabinetに入り、下記を実行
 ```
