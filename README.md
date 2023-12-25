@@ -92,13 +92,9 @@ npx prisma studio
    sudo chmod 755 *.sh
    ```
 1. ルートディレクトリで、setup.sh を実行する
-1. BASIC認証ID/パスワードを設定した`.htpasswd`ファイルを`authfile/`ディレクトリに配置
-    * `.htpasswd`ファイルは`htpasswd`コマンド等で作成する
-    * `htpasswd`コマンドの使用方法、複数回コマンド実行する事により複数ユーザーのパスワード情報がファイルに追加出力される
-    ```   
-    htpasswd -c パスワードファイル名 ユーザー名
-    （パスワードを追加入力）
-    ```
+1. BASIC認証ファイルの配置
+  適切なBASIC認証を記述したファイルを配置する。<BR>
+  参照「BASIC認証ファイルの配置」
 1. デプロイ
    ```
    ./app_start.sh
@@ -142,7 +138,14 @@ npx prisma studio
    docker container logs -f 
    ```
    * -f の後ろにコンテナ名（chilocabinetやdb等）を入れると該当コンテナのみのログが見れます  
-
+# BASIC認証ファイルの配置
+1. BASIC認証ID/パスワードを設定した`.htpasswd`ファイルを`authfile/`ディレクトリに配置
+    * `.htpasswd`ファイルは`htpasswd`コマンド等で作成する
+    * `htpasswd`コマンドの使用方法、複数回コマンド実行する事により複数ユーザーのパスワード情報がファイルに追加出力される
+    ```   
+    htpasswd -c パスワードファイル名 ユーザー名
+    （パスワードを追加入力）
+    ```
 ## テストデータ作成
 コンテナ起動後、chilocabinetに入り、下記を実行
 ```
