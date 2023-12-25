@@ -7,7 +7,7 @@
 # setup
 git clone実行後、ルートディレクトリで以下のコマンドを実行します。
 ```
-setup.sh
+./setup.sh
 ```
 
 # 開発
