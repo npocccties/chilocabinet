@@ -1,16 +1,16 @@
-# 動作環境
+# 1. 動作環境
 - OS: Unix 系（Windows では WSL 等をお使いください）
 - Node.js: v16.20.1
 - Docker
 - Docker Compose (v2)
 
-# setup
+# 2. setup
 git clone実行後、ルートディレクトリで以下のコマンドを実行します。
 ```
 ./setup.sh
 ```
 
-# 開発
+# 3. 開発
 makeコマンドがインストールされていない場合は、適宜インストールしてください。
 
 コンテナのビルド
@@ -47,10 +47,10 @@ app コンテナ内でキャビネットアプリ起動
 npm run dev
 ```
 
-### アプリケーションとDBとの連携
+## 3-1. アプリケーションとDBとの連携
 コンテナ起動後にDBの操作を行いたい場合は、app コンテナ内に移動した後、以下に記載している「prismaの使用方法」より、コマンドを実行してDBとの連携を行います。
 
-## prismaの使用方法
+## 3-2. prismaの使用方法
 詳細に関しては[ドキュメント](https://www.prisma.io/docs/reference/api-reference/command-reference)を参照してください。
 
 1. コンテナ起動後、以下のコマンドでDBのテーブル定義をschema.prismaに反映します。
@@ -68,7 +68,7 @@ npx prisma db seed
 npx prisma studio
 ```
 
-# 開発サーバー（または本番サーバー）
+# 4. 開発サーバー（または本番サーバー）へのデプロイ
 
 1. 下記をインストール
    * Docker
@@ -95,7 +95,7 @@ npx prisma studio
 
 1. BASIC認証ファイルの配置
   適切なBASIC認証を記述したファイルを配置する。<BR>
-  参照「BASIC認証ファイルの配置・編集」
+  参照「5.5 BASIC認証ファイルの配置・編集」
 
 1. デプロイ
    ```
@@ -140,7 +140,94 @@ npx prisma studio
    docker container logs -f 
    ```
    * -f の後ろにコンテナ名（chilocabinetやdb等）を入れると該当コンテナのみのログが見れます  
-## BASIC認証ファイルの配置・編集
+
+## 4-1. テストデータ作成（開発サーバー環境）
+コンテナ起動後、chilocabinetに入り、下記を実行
+```
+npx prisma db seed
+```
+
+もしType Error等で失敗する場合は、`npx prisma generate`を実行してから再度上記のコマンドを実行してください。
+※ ビルドキャッシュなどの影響で、稀にschema.prismaの中身がローカルのファイルと異なった状態でコピーされていることがあります。その場合はdockerのキャッシュを適宜削除して再度コンテナを起動してください。
+
+`npx prisma generate` コマンド実行にroot権限が必要なためdockerコンテナ内にログインする場合は以下のコマンドを実行して下さい。
+    ```
+    docker container exec -it u 0 chilocabinet sh
+    ```
+
+# 5. 環境変数
+sampleに記載の値はダミー値です。 運用環境に合わせて適宜設定して下さい。
+
+設定値で文字列中に空白を含む可能性のあるものに対しては "" (ダブルクォーテーション) を使用しています。
+
+## 5-1. DB, ビルド時用
+.env
+| 変数名                               | 説明                                        | デフォルト値         | 必須/任意|
+| :----------------------------------- | :------------------------------------------ | :------------------- | :-------- |
+|SSL_CERTS_DIR|サーバー証明書の配置ディレクトリ<br>・ディレクトリの末尾には `/` は付与しないこと<br>・本番環境では下記の命名でファイルを配置しておくこと<br>　`signed.crt`: サーバー証明書<br>　`domain.key`: サーバー証明書の秘密鍵|-|必須|
+|ALLOWED_HOSTS|公開ホスト名<br>本番リリースする際は本番サーバーのホスト名を設定してください|-|必須|
+|DB_HOST|DBのホスト名|docker-compose.*.yml に記載されている`db`がホスト名|必須|
+|DB_NAME|DB名|-|必須|
+|DB_USER|DBのユーザ名|-|必須|
+|DB_PASS|DBのパスワード|-|必須|
+|DATABASE_URL|接続先データベースのURL|-|必須|
+|LOG_LEVEL|ログレベル<br>'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'|info|必須|
+|LOG_MAX_SIZE|ログファイルサイズ<br>単位には k / m / g のいずれか指定|100m|必須|
+|LOG_MAX_FILE|ログファイルの世代数|7|必須|
+|DUMP_BACKUP_DIR|DBの圧縮ファイルのバックアップディレクトリ（絶対パス指定）<br>DBバックアップを実行すると `/var/chilocabinet.dump` をダンプ出力するが、そのダンプファイルを下記命名で圧縮したうえで左記ディレクトリに格納する<br>`chilocabinet.dump_{yyyyMMdd}.tar.gz`|/var/chilocabinet/db_dump_backup|必須|
+|DUMP_BACKUP_COUNT|DBの圧縮ファイルの保持日数<br>・保持日数を経過したDBの圧縮ファイルは削除される (例)1週間、保持したい場合は `7` を指定する<br>・削除の契機は、DBバックアップの実行時<br>・起点は昨日|7|必須|
+
+## 5-2. Next.jsアプリケーション用
+Next.jsアプリケーションでは、環境毎に以下のパターンで.envファイルを参照します。
+
+| ファイル名 |	読み込まれるタイミング
+| :--------- | :--------- | 
+|.env.local |	毎回
+|.env.development |	next dev 時のみ
+|.env.production	| next start 時のみ
+
+https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables
+
+以下の2つの環境変数の値を記述します。
+
+.env.development
+
+.env.production
+
+| 変数名                               | 説明                                        | デフォルト値         |必須/任意|
+| :----------------------------------- | :------------------------------------------ | :------------------- | :---- |
+|baseURL|アプリケーション起動時のURL|http://localhost:3000|必須|
+|NEXT_PUBLIC_USERLIST_TITLE|学習者一覧画面に表示されるタイトル文字列|-|必須|
+|NEXT_PUBLIC_HELP_LINK|ヘッダの「ヘルプ」をクリックした場合に開かれるURL|-|必須|
+
+## 5-3
+nginx.conf ファイルの以下箇所を編集します。
+
+```   
+server {
+    #server_name example.org;    # 本番用に差し替えること
+```
+
+| 変数名                               | 説明                                        |必須/任意| 
+| :----------------------------------- | :------------------------------------------ | :---- | 
+|server/server_name|キャビネットWebアプリのドメイン名を指定します。|必須|
+
+## 5-4.  configの設定値
+/config/constants.ts に設定されている固定値
+
+基本的に設定の変更は不要です。
+
+```
+export const EXPORT_CSV_VER="20231115";
+export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/results";
+```
+
+| 変数名                               | 説明                                        | 
+| :----------------------------------- | :------------------------------------------ | 
+|EXPORT_CSV_VER|バッジ提出者リストCSVを出力する際にCSVバージョンカラムに設定される文字列です|
+|OPENBADGE_VERIFIER_URL|ウォレットからバッジ提出時にバッジの妥当性確認のために使用する検証サイトURLです|
+
+## 5-5. BASIC認証ファイルの配置・編集
 BASIC認証ファイルを配置する事により認証設定を行います。サーバー稼働中でもファイル更新すれば認証設定更新されます。
 * BASIC認証ファイルの配置<br>
   `chilocabinet/authfile/` フォルダにBASIC認証情報を記述した`.htpasswd`ファイルを配置します
@@ -166,94 +253,6 @@ BASIC認証ファイルを配置する事により認証設定を行います。
     ```   
       <アカウント名>:<アカウントパスワードハッシュ>
     ```
-
-## テストデータ作成
-コンテナ起動後、chilocabinetに入り、下記を実行
-```
-npx prisma db seed
-```
-
-もしType Error等で失敗する場合は、`npx prisma generate`を実行してから再度上記のコマンドを実行してください。
-※ ビルドキャッシュなどの影響で、稀にschema.prismaの中身がローカルのファイルと異なった状態でコピーされていることがあります。その場合はdockerのキャッシュを適宜削除して再度コンテナを起動してください。
-
-`npx prisma generate` コマンド実行にroot権限が必要なためdockerコンテナ内にログインする場合は以下のコマンドを実行して下さい。
-    ```
-    docker container exec -it u 0 chilocabinet sh
-    ```
-
-
-
-# 環境変数
-sampleに記載の値はダミー値です。 運用環境に合わせて適宜設定して下さい。
-
-設定値で文字列中に空白を含む可能性のあるものに対しては "" (ダブルクォーテーション) を使用しています。
-
-## DB, ビルド時用
-.env
-| 変数名                               | 説明                                        | デフォルト値         | 必須/任意|
-| :----------------------------------- | :------------------------------------------ | :------------------- | :-------- |
-|SSL_CERTS_DIR|サーバー証明書の配置ディレクトリ<br>・ディレクトリの末尾には `/` は付与しないこと<br>・本番環境では下記の命名でファイルを配置しておくこと<br>　`signed.crt`: サーバー証明書<br>　`domain.key`: サーバー証明書の秘密鍵|-|必須|
-|ALLOWED_HOSTS|公開ホスト名<br>本番リリースする際は本番サーバーのホスト名を設定してください|-|必須|
-|DB_HOST|DBのホスト名|docker-compose.*.yml に記載されている`db`がホスト名|必須|
-|DB_NAME|DB名|-|必須|
-|DB_USER|DBのユーザ名|-|必須|
-|DB_PASS|DBのパスワード|-|必須|
-|DATABASE_URL|接続先データベースのURL|-|必須|
-|LOG_LEVEL|ログレベル<br>'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'|info|必須|
-|LOG_MAX_SIZE|ログファイルサイズ<br>単位には k / m / g のいずれか指定|100m|必須|
-|LOG_MAX_FILE|ログファイルの世代数|7|必須|
-|DUMP_BACKUP_DIR|DBの圧縮ファイルのバックアップディレクトリ（絶対パス指定）<br>DBバックアップを実行すると `/var/chilocabinet.dump` をダンプ出力するが、そのダンプファイルを下記命名で圧縮したうえで左記ディレクトリに格納する<br>`chilocabinet.dump_{yyyyMMdd}.tar.gz`|/var/chilocabinet/db_dump_backup|必須|
-|DUMP_BACKUP_COUNT|DBの圧縮ファイルの保持日数<br>・保持日数を経過したDBの圧縮ファイルは削除される (例)1週間、保持したい場合は `7` を指定する<br>・削除の契機は、DBバックアップの実行時<br>・起点は昨日|7|必須|
-
-## Next.jsアプリケーション用
-Next.jsアプリケーションでは、環境毎に以下のパターンで.envファイルを参照します。
-
-| ファイル名 |	読み込まれるタイミング
-| :--------- | :--------- | 
-|.env.local |	毎回
-|.env.development |	next dev 時のみ
-|.env.production	| next start 時のみ
-
-https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables
-
-以下の2つの環境変数の値を記述します。
-
-.env.development
-
-.env.production
-
-| 変数名                               | 説明                                        | デフォルト値         |必須/任意|
-| :----------------------------------- | :------------------------------------------ | :------------------- | :---- |
-|baseURL|アプリケーション起動時のURL|http://localhost:3000|必須|
-|NEXT_PUBLIC_USERLIST_TITLE|学習者一覧画面に表示されるタイトル文字列|-|必須|
-|NEXT_PUBLIC_HELP_LINK|ヘッダの「ヘルプ」をクリックした場合に開かれるURL|-|必須|
-
-## nginxの設定
-nginx.conf ファイルの以下箇所を編集します。
-
-```   
-server {
-    #server_name example.org;    # 本番用に差し替えること
-```
-
-| 変数名                               | 説明                                        |必須/任意| 
-| :----------------------------------- | :------------------------------------------ | :---- | 
-|server/server_name|キャビネットWebアプリのドメイン名を指定します。|必須|
-
-## configの設定値
-/config/constants.ts に設定されている固定値
-
-基本的に設定の変更は不要です。
-
-```
-export const EXPORT_CSV_VER="20231115";
-export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/results";
-```
-
-| 変数名                               | 説明                                        | 
-| :----------------------------------- | :------------------------------------------ | 
-|EXPORT_CSV_VER|バッジ提出者リストCSVを出力する際にCSVバージョンカラムに設定される文字列です|
-|OPENBADGE_VERIFIER_URL|ウォレットからバッジ提出時にバッジの妥当性確認のために使用する検証サイトURLです|
 
 # 学習者の登録・更新
 
