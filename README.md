@@ -257,7 +257,7 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 
 * 学習者一覧画面を開き`ファイルを選択`ボタンをクリックします。学習者登録するCSVファイルを選択します。
 
-![無題1](https://github.com/npocccties/chilocabinet/assets/138557316/c7ba4aaf-2375-46e9-b3e9-cad4a7cf73ee)
+![無題1](https://github.com/npocccties/chilocabinet/assets/138557316/f2d54eab-5545-4105-ba81-c1bb20f5cffa)
 
 * 選択するCSVファイルの形式について。 
   * ファイル形式<br>カンマ区切りのテキスト形式（Comma-Separated Values）です。
@@ -287,30 +287,30 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 
 * `学習者リストアップロード`ボタンをクリックします。
 
-![無題3](https://github.com/npocccties/chilocabinet/assets/138557316/52bb76eb-61c0-49cb-8a74-ec90bc275e97)
+![無題3](https://github.com/npocccties/chilocabinet/assets/138557316/20b57c54-4e10-4b19-8799-12d9814dab09)
 
 * 表示されたダイアログの`OK`をクリックします。
 
-![無題4](https://github.com/npocccties/chilocabinet/assets/138557316/222c3610-a03d-4bda-a3cc-1720b9419d6c)
+![無題4](https://github.com/npocccties/chilocabinet/assets/138557316/3561d799-5dcb-48e4-9950-207c141a8e8a)
 
 * 通信が正常に行われた場合学習者一覧が更新されます。この時以前から登録されていたデータは削除されアップロードしたCSVファイルに記載されているユーザーのみ登録された状態になります。
 
-![無題5](https://github.com/npocccties/chilocabinet/assets/138557316/1f4cbc7c-0c08-402d-9609-04a2814c67cf)
+![無題5](https://github.com/npocccties/chilocabinet/assets/138557316/f25b2de5-2473-43eb-8e01-473d2282a4ac)
 
 # 学習者・提出バッジデータの削除
 
 * 能力バッジ一覧画面を開き`全て削除`ボタンをクリックします。
 
-![無題6](https://github.com/npocccties/chilocabinet/assets/138557316/c8b0371a-bb25-4a8a-8680-b26e3b0af229)
+![無題6](https://github.com/npocccties/chilocabinet/assets/138557316/f9c02b71-70ac-4db3-ab1c-f341620e93ab)
 
 * 警告ダイアログが2回表示されますのでいずれも`OK`を選択します。
 
-![無題7](https://github.com/npocccties/chilocabinet/assets/138557316/61804aed-7e8a-43a7-9fcc-4a7110130890)
+![無題7](https://github.com/npocccties/chilocabinet/assets/138557316/c76d3cad-b16c-4240-b28f-6649fe8e7f48)
 
-![無題8](https://github.com/npocccties/chilocabinet/assets/138557316/fce428a4-06e2-4907-a4f8-dcc783008c19) 
+![無題8](https://github.com/npocccties/chilocabinet/assets/138557316/0ab8bd72-84ac-4c1d-9489-e2f936708318)
 
 * 通信が正常に行われた場合提出された能力バッジ情報が全てDBから削除されます。<br>また登録されていた学習者一覧情報もDBから削除されます。
 
-![無題9](https://github.com/npocccties/chilocabinet/assets/138557316/1ffc5b97-7ccd-4400-bd4a-48a51bf60eb1)
+![無題9](https://github.com/npocccties/chilocabinet/assets/138557316/673495b4-083e-4ca7-b385-ad5bfb60aa76)
 
-![無題10](https://github.com/npocccties/chilocabinet/assets/138557316/e49e7ea2-b9e2-4339-b71e-e0fdef295193)
+![無題10](https://github.com/npocccties/chilocabinet/assets/138557316/16c2ff5e-17aa-40f6-99be-bbbc5621d070)
