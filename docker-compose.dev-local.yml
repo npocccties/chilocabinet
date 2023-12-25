@@ -16,6 +16,11 @@ services:
     container_name: chilocabinet-local-app
     environment:
       - LOG_LEVEL=$LOG_LEVEL
+    logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE}
+        max-file: ${LOG_MAX_FILE}
     depends_on:
       - db
 
