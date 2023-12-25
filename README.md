@@ -236,7 +236,7 @@ server {
 
 | 変数名                               | 説明                                        |必須/任意| 
 | :----------------------------------- | :------------------------------------------ | :---- | 
-|server/server_name|キャビネットWebアプリのドメイン名を指定します。（例）dev-cabinet.oku.cccties.org|必須|
+|server/server_name|キャビネットWebアプリのドメイン名を指定します。|必須|
 
 ## configの設定値
 /config/constants.ts に設定されている固定値
