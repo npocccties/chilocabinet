@@ -153,7 +153,7 @@ npx prisma db seed
 `npx prisma generate` コマンド実行にroot権限が必要なためdockerコンテナ内にログインする場合は以下のコマンドを実行して下さい。
 
 ```
-    docker container exec -it u 0 chilocabinet sh
+docker container exec -it u 0 chilocabinet sh
 ```
 
 # 5. 環境変数
