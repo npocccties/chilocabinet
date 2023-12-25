@@ -292,7 +292,7 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 
 ![無題8](https://github.com/npocccties/chilocabinet/assets/138557316/fce428a4-06e2-4907-a4f8-dcc783008c19) 
 
-* 通信が正常に行われた場合提出された能力バッジ情報が全てDBから削除されます。<br>また登録されていた学習さy一覧情報もDBから削除されます。
+* 通信が正常に行われた場合提出された能力バッジ情報が全てDBから削除されます。<br>また登録されていた学習者一覧情報もDBから削除されます。
 
 ![無題9](https://github.com/npocccties/chilocabinet/assets/138557316/1ffc5b97-7ccd-4400-bd4a-48a51bf60eb1)
 
