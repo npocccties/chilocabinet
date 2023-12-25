@@ -151,9 +151,10 @@ npx prisma db seed
 ※ ビルドキャッシュなどの影響で、稀にschema.prismaの中身がローカルのファイルと異なった状態でコピーされていることがあります。その場合はdockerのキャッシュを適宜削除して再度コンテナを起動してください。
 
 `npx prisma generate` コマンド実行にroot権限が必要なためdockerコンテナ内にログインする場合は以下のコマンドを実行して下さい。
-    ```
+
+```
     docker container exec -it u 0 chilocabinet sh
-    ```
+```
 
 # 5. 環境変数
 sampleに記載の値はダミー値です。 運用環境に合わせて適宜設定して下さい。
