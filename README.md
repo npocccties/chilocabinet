@@ -37,47 +37,6 @@ docker-compose.dev-local.yml ファイルの command: 行を以下のように�
 
 自動起動でない場合、コンテナ起動後にキャビネットアプリ起動するには以下の操作を行ってください。
 
-chilocabinet app コンテナ内に移動
-```
-。・
-- OS: Unix 系（Windows では WSL 等をお使いください）
-- Node.js: v16.20.1
-- Docker
-- Docker Compose (v2)
-
-# setup
-git clone実行後、ルートディレクトリで以下のコマンドを実行します。
-```
-script/setup.sh
-```
-
-# 開発
-makeコマンドがインストールされていない場合は、適宜インストールしてください。
-
-コンテナのビルド
-```
-docker compose -f docker-compose.dev-local.yml build
-```
-
-コンテナ起動（キャビネットアプリ開始）
-```
-docker compose -f docker-compose.dev-local.yml up -d
-```
-
-コンテナのdown（キャビネットアプリ停止）
-```
-docker compose -f docker-compose.dev-local.yml down
-```
-
-コンテナ起動と同時にキャビネットアプリが自動開始します、自動起動としたくない場合は
-
-docker-compose.dev-local.yml ファイルの command: 行を以下のようにコメントアウトしてください。
-```
-# command: npm run dev
-```
-
-自動起動でない場合、コンテナ起動後にキャビネットアプリ起動するには以下の操作を行ってください。
-
 app コンテナ内に移動
 ```
 docker container exec -it chilocabinet-local-app sh
