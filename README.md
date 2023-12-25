@@ -280,3 +280,20 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 
 ![無題5](https://github.com/npocccties/chilocabinet/assets/138557316/1f4cbc7c-0c08-402d-9609-04a2814c67cf)
 
+# 学習者・提出バッジデータの削除
+
+* 能力バッジ一覧画面を開き`全て削除`ボタンをクリックします。
+
+![無題6](https://github.com/npocccties/chilocabinet/assets/138557316/c8b0371a-bb25-4a8a-8680-b26e3b0af229)
+
+* 警告ダイアログが2回表示されますのでいずれも`OK`を選択します。
+
+![無題7](https://github.com/npocccties/chilocabinet/assets/138557316/61804aed-7e8a-43a7-9fcc-4a7110130890)
+
+![無題8](https://github.com/npocccties/chilocabinet/assets/138557316/fce428a4-06e2-4907-a4f8-dcc783008c19) 
+
+* 通信が正常に行われた場合提出された能力バッジ情報が全てDBから削除されます。<br>また登録されていた学習さy一覧情報もDBから削除されます。
+
+![無題9](https://github.com/npocccties/chilocabinet/assets/138557316/1ffc5b97-7ccd-4400-bd4a-48a51bf60eb1)
+
+![無題10](https://github.com/npocccties/chilocabinet/assets/138557316/e49e7ea2-b9e2-4339-b71e-e0fdef295193)
