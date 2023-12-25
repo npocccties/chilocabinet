@@ -35,7 +35,7 @@ docker-compose.dev-local.yml ファイルの command: 行を以下のように�
 # command: npm run dev
 ```
 
-自動起動でない場合、コンテナ起動後にキャビネットアプリ起動する手順
+自動起動でない場合、コンテナ起動後にキャビネットアプリ起動するには以下の操作を行ってください。
 
 chilocabinetコンテナ内に移動
 ```
@@ -46,6 +46,9 @@ chilocabinetコンテナ内でキャビネットアプリ起動
 ```
 npm run dev
 ```
+
+### アプリケーションとDBとの連携
+appコンテナ内に移動した後、以下に記載している「prismaの使用方法」より、コマンドを実行してDBとの連携を行います。
 
 ## prismaの使用方法
 詳細に関しては[ドキュメント](https://www.prisma.io/docs/reference/api-reference/command-reference)を参照してください。
@@ -174,7 +177,7 @@ npx prisma db seed
 |LOG_LEVEL|ログレベル<br>'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'|info|必須|
 |LOG_MAX_SIZE|ログファイルサイズ<br>単位には k / m / g のいずれか指定|100m|必須|
 |LOG_MAX_FILE|ログファイルの世代数|7|必須|
-|DUMP_BACKUP_DIR|DBの圧縮ファイルのバックアップディレクトリ（絶対パス指定）<br>DBバックアップを実行すると `/var/chilocabinet.dump` をダンプ出力するが、そのダンプファイルを下記命名で圧縮したうえで左記ディレクトリに格納する<br>`chilocabinet.dump_{yyyyMMdd}.tar.gz`|/var/chilocabinet.dump|必須|
+|DUMP_BACKUP_DIR|DBの圧縮ファイルのバックアップディレクトリ（絶対パス指定）<br>DBバックアップを実行すると `/var/chilocabinet.dump` をダンプ出力するが、そのダンプファイルを下記命名で圧縮したうえで左記ディレクトリに格納する<br>`chilocabinet.dump_{yyyyMMdd}.tar.gz`|/var/chilocabinet/db_dump_backup|必須|
 |DUMP_BACKUP_COUNT|DBの圧縮ファイルの保持日数<br>・保持日数を経過したDBの圧縮ファイルは削除される (例)1週間、保持したい場合は `7` を指定する<br>・削除の契機は、DBバックアップの実行時<br>・起点は昨日|7|必須|
 
 ## Next.jsアプリケーション用
