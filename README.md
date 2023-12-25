@@ -276,7 +276,7 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 
 ![無題4](https://github.com/npocccties/chilocabinet/assets/138557316/222c3610-a03d-4bda-a3cc-1720b9419d6c)
 
-* 通信が正常に行われた場合学習者一覧が更新されます。この時以前から登録されていたデータはCSVファイルに記載されているユーザーのみ登録された状態になります。
+* 通信が正常に行われた場合学習者一覧が更新されます。この時以前から登録されていたデータは削除されアップロードしたCSVファイルに記載されているユーザーのみ登録された状態になります。
 
 ![無題5](https://github.com/npocccties/chilocabinet/assets/138557316/1f4cbc7c-0c08-402d-9609-04a2814c67cf)」
 
