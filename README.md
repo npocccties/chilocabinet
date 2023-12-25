@@ -199,7 +199,6 @@ https://nextjs.org/docs/pages/building-your-application/configuring/environment-
 | 変数名                               | 説明                                        | デフォルト値         |必須/任意|
 | :----------------------------------- | :------------------------------------------ | :------------------- | :---- |
 |baseURL|アプリケーション起動時のURL|http://localhost:3000|必須|
-|clientName|アプリケーションの名称|chilocabinet|必須|
 |NEXT_PUBLIC_USERLIST_TITLE|学習者一覧画面に表示されるタイトル文字列|-|必須|
 |NEXT_PUBLIC_HELP_LINK|ヘッダの「ヘルプ」をクリックした場合に開かれるURL|-|必須|
 
