@@ -92,9 +92,11 @@ npx prisma studio
    sudo chmod 755 *.sh
    ```
 1. ルートディレクトリで、setup.sh を実行する
+
 1. BASIC認証ファイルの配置
   適切なBASIC認証を記述したファイルを配置する。<BR>
-  参照「BASIC認証ファイルの配置」
+  参照「BASIC認証ファイルの配置・編集」
+
 1. デプロイ
    ```
    ./app_start.sh
@@ -138,7 +140,7 @@ npx prisma studio
    docker container logs -f 
    ```
    * -f の後ろにコンテナ名（chilocabinetやdb等）を入れると該当コンテナのみのログが見れます  
-## BASIC認証ファイルの配置
+## BASIC認証ファイルの配置・編集
 BASIC認証ファイルを配置する事により認証設定を行います。サーバー稼働中でもファイルを更新すれば認証設定が更新されます。
 * BASIC認証ファイルの配置<br>
   `chilocabinet/authfile/` フォルダにBASIC認証情報を記述した`.htpasswd`ファイルを配置します
