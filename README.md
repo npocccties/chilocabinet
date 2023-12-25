@@ -37,18 +37,59 @@ docker-compose.dev-local.yml ファイルの command: 行を以下のように�
 
 自動起動でない場合、コンテナ起動後にキャビネットアプリ起動するには以下の操作を行ってください。
 
-chilocabinetコンテナ内に移動
+chilocabinet app コンテナ内に移動
 ```
-script/inapp.sh
+。・
+- OS: Unix 系（Windows では WSL 等をお使いください）
+- Node.js: v16.20.1
+- Docker
+- Docker Compose (v2)
+
+# setup
+git clone実行後、ルートディレクトリで以下のコマンドを実行します。
+```
+script/setup.sh
 ```
 
-chilocabinetコンテナ内でキャビネットアプリ起動
+# 開発
+makeコマンドがインストールされていない場合は、適宜インストールしてください。
+
+コンテナのビルド
+```
+docker compose -f docker-compose.dev-local.yml build
+```
+
+コンテナ起動（キャビネットアプリ開始）
+```
+docker compose -f docker-compose.dev-local.yml up -d
+```
+
+コンテナのdown（キャビネットアプリ停止）
+```
+docker compose -f docker-compose.dev-local.yml down
+```
+
+コンテナ起動と同時にキャビネットアプリが自動開始します、自動起動としたくない場合は
+
+docker-compose.dev-local.yml ファイルの command: 行を以下のようにコメントアウトしてください。
+```
+# command: npm run dev
+```
+
+自動起動でない場合、コンテナ起動後にキャビネットアプリ起動するには以下の操作を行ってください。
+
+app コンテナ内に移動
+```
+docker container exec -it chilocabinet-local-app sh
+```
+
+app コンテナ内でキャビネットアプリ起動
 ```
 npm run dev
 ```
 
 ### アプリケーションとDBとの連携
-appコンテナ内に移動した後、以下に記載している「prismaの使用方法」より、コマンドを実行してDBとの連携を行います。
+コンテナ起動後にDBの操作を行いたい場合は、app コンテナ内に移動した後、以下に記載している「prismaの使用方法」より、コマンドを実行してDBとの連携を行います。
 
 ## prismaの使用方法
 詳細に関しては[ドキュメント](https://www.prisma.io/docs/reference/api-reference/command-reference)を参照してください。
