@@ -160,7 +160,7 @@ npx prisma db seed
 
 
 # 環境変数
-sampleに記載の値（client_idやclient_secrett等）はダミー値です。 運用環境に合わせて適宜設定して下さい。
+sampleに記載の値（cALLOWED_HOSTSやSSL_CERTS_DIR等）はダミー値です。 運用環境に合わせて適宜設定して下さい。
 
 ## DB, ビルド時用
 .env
