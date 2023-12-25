@@ -139,6 +139,7 @@ npx prisma studio
    ```
    * -f の後ろにコンテナ名（chilocabinetやdb等）を入れると該当コンテナのみのログが見れます  
 ## BASIC認証ファイルの配置
+BASIC認証ファイルを配置する事により認証設定を行う。サーバー稼働中でもファイルを更新すれば認証設定も更新される。
 * BASIC認証ファイルの配置<br>
   `chilocabinet/authfile/` フォルダにBASIC認証情報を記述した`.htpasswd`ファイルを配置する
 * BASIC認証ファイルの作成方法<br>
