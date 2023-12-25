@@ -235,3 +235,20 @@ export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.imsglobal.org/r
 | :----------------------------------- | :------------------------------------------ | 
 |EXPORT_CSV_VER|バッジ提出者リストCSVを出力する際にCSVバージョンカラムに設定される文字列です|
 |OPENBADGE_VERIFIER_URL|ウォレットからバッジ提出時にバッジの妥当性確認のために使用する検証サイトURLです|
+
+# 学習者の登録・更新
+学習者一覧画面を開き`ファイルを選択`ボタンをクリックします。学習者登録するCSVファイルを選択します。
+(https://github.com/npocccties/chilocabinet/assets/138557316/c7ba4aaf-2375-46e9-b3e9-cad4a7cf73ee)
+  * ファイル形式<br>カンマ区切りのテキスト形式（Comma-Separated Values）です。
+  * 拡張子<br>拡張子は[csv]です。
+  * 文字コード<br>文字コードはBOM付きのUTF-8です。(BOM: 0xEF 0xBB 0xBF)
+  * 改行コード<br><CR><LF>です。
+  * ヘッダ行の有無<br>ヘッダ行が有りません。1行目からデータとして取り込みます。
+  * データフィールド内の制御文字の処理<br>以下の文字をデータフィールド内で使用しないで下さい。空白を含む列の場合`""`ダブルクォーテーションで囲んで下さい。  
+(https://github.com/npocccties/chilocabinet/assets/138557316/d0badfd5-031a-487e-b0f0-ed3f8fa05747)
+`学習者リストアップロード`ボタンをクリックします。
+(https://github.com/npocccties/chilocabinet/assets/138557316/52bb76eb-61c0-49cb-8a74-ec90bc275e97)
+表示されたダイアログの`OK`をクリックします。
+(https://github.com/npocccties/chilocabinet/assets/138557316/222c3610-a03d-4bda-a3cc-1720b9419d6c)
+通信が正常に行われた場合学習者一覧が更新されます。この時以前から登録されていたデータはCSVファイルに記載されているユーザーのみ登録された状態になります。
+(https://github.com/npocccties/chilocabinet/assets/138557316/1f4cbc7c-0c08-402d-9609-04a2814c67cf)
