@@ -362,12 +362,12 @@ export const BadgeUserList = () => {
         { //未登録emailのバッジが提出済みの場合の画面遷移ボタン表示 
           showTableNotAppButton == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"12pt"}>
-            <Box color="blue" textDecoration={"underline"}>
+            <Box color={"primary.700"} textDecoration={"underline"}>
               <Link _hover={{fontWeight: "bold"}} onClick={() => setStatePage({...statePage, page: AppPage.BadgeUserListNotApp})}>
                 ※提出済みバッジ内に学習者一覧に登録のないIDがあります 
               </Link>
             </Box>
-            <Button color={"black"}  backgroundColor={"lightgray"} fontSize={"12px"} h={"22px"} my={"8px"} 
+            <Button colorScheme={"gray"} fontSize={"12px"} h={"22px"} my={"8px"} 
               onClick={() => setStatePage({...statePage, page: AppPage.BadgeUserListNotApp})} 
             >
               確認する 
@@ -378,7 +378,7 @@ export const BadgeUserList = () => {
         { //戻るボタン CSVダウンロード表示
           (showBackButton == false) ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"24pt"}>
-            <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
+            <Button colorScheme={"gray"} fontSize={"12px"}
               onClick={() => setStatePage({...statePage, page: AppPage.BadgeList})}
             >
              戻る
@@ -386,9 +386,7 @@ export const BadgeUserList = () => {
             { showTable == false ? <></> :
               <>
                 <Box></Box>
-                <Button color={"white"} fontSize={"12px"} backgroundColor={"teal"}
-                  onClick={onClickDownloadCsv}
-                >
+                <Button backgroundColor={"primary.700"} fontSize={"12px"} onClick={onClickDownloadCsv}>
                   CSVダウンロード
                 </Button>
               </>
@@ -403,7 +401,7 @@ export const BadgeUserList = () => {
             <Box>
               バッジが提出済みですが、学習者登録がなされていないIDです
             </Box>
-            <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
+            <Button colorScheme={"gray"} fontSize={"12px"}
               onClick={() => setStatePage({...statePage, page: AppPage.BadgeUserList})}
             >
               バッジ提出者一覧に戻る
@@ -455,7 +453,7 @@ export const BadgeUserList = () => {
                 }}
                 muiTableBodyProps= {{
                   sx: {
-                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
+                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#f3f4f6' },
                   },
                 }}
                 muiTableProps={{
@@ -503,7 +501,7 @@ export const BadgeUserList = () => {
                 }}
                 muiTableBodyProps= {{
                   sx: {
-                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
+                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#f3f4f6' },
                   },
                 }}
                 muiTableProps={{

@@ -61,8 +61,9 @@ export const Dialog = () => {
   let title = "タイトル";
   let msg = "メッセージ";
   let button1 = "no";
-  let button2 = "yes"
-  let color2 = "red";
+  let button2 = "yes";
+  let color1 = "gray";
+  let color2 = "primary";
   let useCloseButton = false;
 
   if(stateDialog.type == 1) {
@@ -86,7 +87,6 @@ export const Dialog = () => {
     msg = "対象のバッジ提出者一覧を取得しをCSVファイルに出力します。";
     button1 = "キャンセル";
     button2 = "OK";
-    color2 = "teal";
   }
 
   if(stateDialog.type == 4) {
@@ -96,7 +96,6 @@ export const Dialog = () => {
       "実行してよろしいですか。";
     button1 = "キャンセル";
     button2 = "OK";
-    color2 = "teal";
   }
  
   if(stateDialog.type == 5) {
@@ -137,12 +136,17 @@ export const Dialog = () => {
             {msg}
           </AlertDialogBody>
           <AlertDialogFooter>
-            <Button hidden={button1 == null} ref={cancelRef} onClick={() => onCloseDialog(false)}>
+            <Button hidden={button1 == null} colorScheme={color1} ref={cancelRef} onClick={() => onCloseDialog(false)}>
               {button1}
             </Button>
-            <Button hidden={button2 == null} colorScheme={color2} ml={3} onClick={() => onCloseDialog(true)}>
-              {button2}
-            </Button>
+            { (color2 == "primary") ?
+                ( <Button hidden={button2 == null} backgroundColor={"primary.700"} ml={3} onClick={() => onCloseDialog(true)}>
+                    {button2}
+                  </Button> ) :
+                ( <Button hidden={button2 == null} colorScheme={color2} ml={3} onClick={() => onCloseDialog(true)}>
+                    {button2}
+                  </Button> )
+            }
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

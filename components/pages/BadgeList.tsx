@@ -325,7 +325,7 @@ export const BadgeList = () => {
   let showTable = (tableData != null);
   let messageTxt = null;
   let useSpinner = false;
-  let downloadButtonColor = 'gray.400';
+  let downloadButtonDisable = true;
 
   if ( statePage.page != AppPage.BadgeList) {
     return ( <></> );
@@ -340,7 +340,7 @@ export const BadgeList = () => {
   }
 
   else if(rowSelection != null && Object.keys(rowSelection).length > 0) {
-    downloadButtonColor = 'teal';
+    downloadButtonDisable = false;
   }
 
   //<---- 画面出力 ---->
@@ -374,7 +374,7 @@ export const BadgeList = () => {
               <Box>
                 登録した学習者情報・提出された能力バッジ情報全データをDBから削除します 
               </Box>
-              <Button color={"white"} fontSize={"12px"} backgroundColor={"red"}
+              <Button color={"white"} fontSize={"12px"} colorScheme={"red"}
                 onClick={onClickClearDB}
               >
                 全て削除
@@ -385,7 +385,8 @@ export const BadgeList = () => {
               <Box>
                 チェックした能力バッジの提出者一覧をダウンロードします 
               </Box>
-              <Button color={"white"} fontSize={"12px"} backgroundColor={downloadButtonColor}
+              <Button fontSize={"12px"} backgroundColor={"primary.700"}
+                isDisabled={downloadButtonDisable}
                 onClick={onClickDownloadCsv} 
               >
                 CSVダウンロード 
@@ -412,7 +413,7 @@ export const BadgeList = () => {
                     },
                     sx: {
                       'textDecoration': 'underline',
-                      'color': 'blue',
+                      'color': '#1D4ED8',
                       'cursor': 'pointer',
                       '&:hover': {
                         fontWeight: 'bold',
@@ -432,7 +433,7 @@ export const BadgeList = () => {
                 initialState={{density: 'comfortable'}}
                 muiTableBodyProps= {{
                   sx: {
-                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
+                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#f3f4f6' },
                   },
                 }}
                 muiTableProps={{

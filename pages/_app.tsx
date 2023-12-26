@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import { ChakraProvider } from "@chakra-ui/react";
+import { theme } from "@/styles/chakraTheme";
 import { RecoilRoot, RecoilEnv } from "recoil";
 
 import type { AppProps } from "next/app";
@@ -10,7 +11,7 @@ RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = false;
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <RecoilRoot>
         <Component {...pageProps} />
       </RecoilRoot>
