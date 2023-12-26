@@ -18,8 +18,17 @@ export const Header: React.FC<Props> = () => {
   const [appStatePage, setAppStatePage] = useAppState_Page(); 
 
   const StyleColor = {
-    headerBackGround: "basic.black",
+    headerBackGround: "gray.200",
   }
+
+  const StyleHeaderTitle = {
+    marginRight: "20px",
+    marginLeft: "20px",
+    fontFamily: 'Meiryo',
+    fontSize: "18px",
+    fontWeight: "bold",
+    textDecoration: "none"
+  } as const;
 
   const StyleHeaderSelectorOn = {
     marginRight: "20px",
@@ -28,6 +37,7 @@ export const Header: React.FC<Props> = () => {
     fontSize: "16px",
     fontWeight: "bold",
     textAlign: "center",
+    color: "blue"
   } as const; 
 
   const StyleHeaderSelectorOff = {
@@ -37,6 +47,7 @@ export const Header: React.FC<Props> = () => {
     fontSize: "16px",
     fontWeight: "bold",
     textAlign: "center",
+    color: "black"
   } as const;
 
   return (
@@ -46,25 +57,15 @@ export const Header: React.FC<Props> = () => {
         alignItems={"center"}
         justifyContent={"space-between"}
         backgroundColor={StyleColor.headerBackGround}
-        color={"basic.white"}
         p={{base: 4}}
       >
-        { (appStatePage.header == AppHeader.TopPage) ?
-          ( <Box style={StyleHeaderSelectorOn} color={"primary.500"}>
-              バッジキャビネット 
-            </Box>
-          ) :
-          ( <Box style={StyleHeaderSelectorOff}>
-              <Link onClick={() => setAppStatePage(HeaderOnClick0)}>
-                バッジキャビネット
-              </Link>
-            </Box>
-          )
-        }
+        <Box style={StyleHeaderTitle}>
+          バッジキャビネット
+        </Box>
         <Spacer />
         { (appStatePage.header == AppHeader.UserList) ?
-          ( <Box style={StyleHeaderSelectorOn} color={"primary.500"}>
-             学習者一覧
+          ( <Box style={StyleHeaderSelectorOn}>
+              学習者一覧
             </Box>
           ) :
           ( <Box style={StyleHeaderSelectorOff}>
@@ -75,13 +76,13 @@ export const Header: React.FC<Props> = () => {
           )
         }
         { (appStatePage.header == AppHeader.BadgeList) ?
-          ( <Box style={StyleHeaderSelectorOn} color={"primary.500"}>
+          ( <Box style={StyleHeaderSelectorOn}>
               能力バッジ一覧
             </Box>
           ) :
           ( <Box style={StyleHeaderSelectorOff}>
               <Link onClick={() => setAppStatePage(HeaderOnClick2)}>
-                能力バッジ一覧 
+               能力バッジ一覧 
               </Link>
             </Box>
           )
@@ -94,21 +95,6 @@ export const Header: React.FC<Props> = () => {
       </Flex>
     </Box>
   );
-}
-
-//ヘッダセレクタ0クリックハンドラ
-//TOP画面へ遷移
-
-const HeaderOnClick0 = (state) => {
-  if(state.lock || state.header == AppHeader.TopPage) {
-    return state;
-  }
-  const update = {...state};
-  update.header = AppHeader.TopPage;
-  update.page = AppPage.TopPage;
-  update.event = null;
-  update.lock = false;
-  return update;
 }
 
 //ヘッダセレクタ1クリックハンドラ

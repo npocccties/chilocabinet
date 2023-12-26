@@ -194,7 +194,7 @@ export const UserList = () => {
   let enableUploadCsv = false;
   let messageTxt = null;
   let useSpinner = false;
-  let uploadButtonDisable = (uploadFile == null);
+  let uploadButtonColor = (uploadFile == null) ? "gray.400" : "teal";
 
   if (statePage.page != AppPage.UserList && statePage.page != AppPage.UserListNotApp) {
     return ( <></> );
@@ -265,10 +265,10 @@ export const UserList = () => {
         { showUploadCsv == false ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"}>
             <Box mx={2}>
-              <Button backgroundColor={"primary.700"}
+              <Button color={"white"}
                 fontSize={"12px"}
+                backgroundColor={uploadButtonColor}
                 onClick={onClickUpload}
-                isDisabled={uploadButtonDisable}
               >
                 学習者リストアップロード
               </Button>
@@ -301,12 +301,13 @@ export const UserList = () => {
             tableDataNotApp.length > 0 &&
             useSpinner == false) == false) ? (<></>) : (
           <Flex direction={"row"} alignItems={"center"} gap={"16pt"}>
-            <Box color={"primary.700"} textDecoration={"underline"}>
+            <Box color={"blue"} textDecoration={"underline"}
+            >
               <Link _hover={{fontWeight: "bold"}} onClick={() => setStatePage({...statePage, page: "UserListNotApp"})}>
                 ※提出済みバッジ内に学習者一覧に登録のないIDがあります
               </Link>
             </Box>
-            <Button colorScheme={"gray"} fontSize={"12px"} h={"22px"} m={"8px"} 
+            <Button color={"black"} backgroundColor={"lightgray"} fontSize={"12px"} h={"22px"} m={"8px"} 
               onClick={() => setStatePage({...statePage, page: "UserListNotApp"})} 
             >
               確認する 
@@ -318,7 +319,7 @@ export const UserList = () => {
             <Box>
               バッジが提出済みですが、学習者登録がなされていないIDです
             </Box>
-            <Button colorScheme={"gray"} fontSize={"12px"}
+            <Button color={"black"} fontSize={"12px"} backgroundColor={"lightgray"}
               onClick={() => setStatePage({...statePage, page: "UserList"})}
             >
               学習者一覧に戻る
@@ -359,7 +360,7 @@ export const UserList = () => {
                 }}
                 muiTableBodyProps= {{
                   sx: {
-                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#f3f4f6' },
+                    '& tr:nth-of-type(odd) > td': { backgroundColor: '#eee' },
                   },
                 }}
                 muiTableProps={{

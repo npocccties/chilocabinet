@@ -2,19 +2,20 @@ import { useCallback } from "react";
 import { atom, useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
 import { RECOIL_ATOMS_KEYS } from "@/share/store/keys";
 
+
+
+
 export const AppPage = { 
   UserList:             "UserList",
   UserListNotApp:       "UserListNotApp",
   BadgeList:            "BadgeList",
   BadgeUserList:        "BadgeUserList",
   BadgeUserListNotApp:  "BadgeUserListiNotApp",
-  TopPage:              "TopPage",
 } as const;
 
 export const AppHeader = {
   UserList:       "UserList",
   BadgeList:      "BadgeList",
-  TopPage:        "TopPage",
 } as const;
 
 export const AppEvent = {
@@ -112,10 +113,10 @@ export type AppStateType_Dialog = {
 const AppState_Page = atom<AppStateType_Page> ({
   key: RECOIL_ATOMS_KEYS.APPSTATE_PAGE,
   default: {
-    header: AppHeader.TopPage,
-    page: AppPage.TopPage, 
+    header: AppHeader.UserList,
+    page: AppPage.UserList, 
     param: null,
-    event: null,
+    event: AppEvent.OpenPage,
     lock: false,
   },
 });
