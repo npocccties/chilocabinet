@@ -374,7 +374,7 @@ export const BadgeList = () => {
               <Box>
                 登録した学習者情報・提出された能力バッジ情報全データをDBから削除します 
               </Box>
-              <Button color={"white"} fontSize={"12px"} colorScheme={"red"}
+              <Button color={"white"} fontSize={"12px"} colorScheme={"red"} backgroundColor={"status.danger"}
                 onClick={onClickClearDB}
               >
                 全て削除

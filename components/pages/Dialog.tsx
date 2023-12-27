@@ -64,6 +64,7 @@ export const Dialog = () => {
   let button2 = "yes";
   let color1 = "gray";
   let color2 = "primary";
+  let color2bg = "primary.700";
   let useCloseButton = false;
 
   if(stateDialog.type == 1) {
@@ -72,6 +73,7 @@ export const Dialog = () => {
     button1 = "キャンセル";
     button2 = "はい全削除します";
     color2 = "red";
+    color2bg = "status.danger";
   }
 
   if(stateDialog.type == 2) {
@@ -80,6 +82,7 @@ export const Dialog = () => {
     button1 = "キャンセル";
     button2 = "はい全削除します";
     color2 = "red";
+    color2bg = "status.danger";
   }
 
   if(stateDialog.type == 3) {
@@ -139,14 +142,9 @@ export const Dialog = () => {
             <Button hidden={button1 == null} colorScheme={color1} ref={cancelRef} onClick={() => onCloseDialog(false)}>
               {button1}
             </Button>
-            { (color2 == "primary") ?
-                ( <Button hidden={button2 == null} backgroundColor={"primary.700"} ml={3} onClick={() => onCloseDialog(true)}>
-                    {button2}
-                  </Button> ) :
-                ( <Button hidden={button2 == null} colorScheme={color2} ml={3} onClick={() => onCloseDialog(true)}>
-                    {button2}
-                  </Button> )
-            }
+            <Button hidden={button2 == null} colorScheme={color2} backgroundColor={color2bg} ml={3} onClick={() => onCloseDialog(true)}>
+              {button2}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
