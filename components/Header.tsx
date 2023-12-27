@@ -76,12 +76,12 @@ export const Header: React.FC<Props> = () => {
         }
         { (appStatePage.header == AppHeader.BadgeList) ?
           ( <Box style={StyleHeaderSelectorOn} color={"primary.500"}>
-              能力バッジ一覧
+              提出バッジ一覧
             </Box>
           ) :
           ( <Box style={StyleHeaderSelectorOff}>
               <Link onClick={() => setAppStatePage(HeaderOnClick2)}>
-                能力バッジ一覧 
+                提出バッジ一覧 
               </Link>
             </Box>
           )

@@ -52,17 +52,17 @@ export const TopPage = () => {
         fontSize={"12px"}
         gap={"12px"}
       >
-        <Box fontWeight={"bold"} fontSize={"22px"} m={7}>
+        <Box fontWeight={"bold"} fontSize={"48px"} m={10}>
           バッジキャビネット 
         </Box>
-        <Box m={7}>
-          <Button width={250} fontSize={"18px"} colorScheme={"gray"} onClick={() => setStatePage(openUserList)}>
+        <Box m={10}>
+          <Button width={400} height={100} fontSize={"32px"} colorScheme={"gray"} onClick={() => setStatePage(openUserList)}>
             学習者一覧
           </Button>
         </Box>
-        <Box m={7}>
-          <Button width={250} fontSize={"18px"} colorScheme={"gray"} onClick={() => setStatePage(openBadgeList)}>
-            能力バッジ一覧
+        <Box m={10}>
+          <Button width={400} height={100} fontSize={"32px"} colorScheme={"gray"} onClick={() => setStatePage(openBadgeList)}>
+            提出バッジ一覧
           </Button>
         </Box>
       </Flex>

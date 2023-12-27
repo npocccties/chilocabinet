@@ -358,7 +358,7 @@ export const BadgeList = () => {
         textAlign={"center"}
       >
         <Box fontWeight={"bold"} fontSize={"22px"}>
-          能力バッジ一覧
+          提出バッジ一覧
         </Box>
         { messageTxt == null ? (<></>) : (
           <Box m={[10,100]} fontWeight={"bold"} fontSize={"16px"}>
