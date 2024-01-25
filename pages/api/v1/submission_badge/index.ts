@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 const { setTimeout } = require('timers/promises');
 
-import ION from "@decentralized-identity/ion-tools";
+import { resolve, verify } from "@decentralized-identity/ion-tools";
 import crypto from "crypto";
 import axios from "axios";
 const pngitxt = require("png-itxt");
@@ -465,7 +465,7 @@ async function resolveHeader( header )
       let kids = kid.split('#');
       let controller = kids[0];
       let id = '#' + kids[1];
-      let diddoc = await ION.resolve(kid);
+      let diddoc = await resolve(kid);
 
       loggerDebug(diddoc);
       loggerDebug(diddoc.didDocument.verificationMethod);
@@ -523,7 +523,7 @@ async function checkValidationVc(vcHeader, vcPayload, vcJwt)
   //VC署名検証
   let verifyRet = false;
   try {
-    verifyRet = await ION.verifyJws({jws: vcJwt, publicJwk: pubKey});
+    verifyRet = await verify({jws: vcJwt, publicJwk: pubKey});
   } catch (exceptionVar) {
     loggerError("ERROR: API submission_badge, vefiry Jws check Exception.");
     loggerError(exceptionVar);
