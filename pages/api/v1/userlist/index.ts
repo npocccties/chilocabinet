@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "@/lib/prisma";
+
 import {loggerError, loggerInfo, loggerDebug } from "@/lib/logger";
+import prisma from "@/lib/prisma";
 
 //<---- 学習者一覧取得 ---->
 

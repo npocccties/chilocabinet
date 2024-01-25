@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { atom, useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
+import { atom, useRecoilState } from "recoil";
+
 import { RECOIL_ATOMS_KEYS } from "@/share/store/keys";
 
 export const AppPage = { 
