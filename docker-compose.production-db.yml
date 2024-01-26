@@ -19,6 +19,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d
+    restart: always
 
 networks:
   db_network:

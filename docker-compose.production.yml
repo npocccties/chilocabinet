@@ -29,7 +29,7 @@ services:
       - app_network
       - db_network
     container_name: chilocabinet
-    restart: "no"
+    restart: always
     environment:
       - LOG_LEVEL=$LOG_LEVEL
     logging:
