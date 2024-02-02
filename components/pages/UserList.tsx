@@ -3,6 +3,7 @@ import axios from "axios";
 import { ThemeProvider, createTheme } from '@mui/material';
 import { MaterialReactTable } from 'material-react-table';
 import { Link, Flex, Box, Button, Spinner } from "@chakra-ui/react";
+import Encoding from "encoding-japanese"
 
 import {
   AppPage,
@@ -452,7 +453,11 @@ async function uploadCSV2(statePage, setStatePage, userListUpload, setUserListUp
   let msg = null;
 
   try {
-    text = await file.text();      
+    const fileData: ArrayBuffer = await file.arrayBuffer()
+    text = Encoding.convert(new Uint8Array(fileData), {
+      to: "UNICODE",
+      type: "string"
+    });
   }
   catch (err) { //no act
     console.log(err);
