@@ -1,6 +1,5 @@
 import crypto from "crypto";
 
-import { resolve, verify } from "@decentralized-identity/ion-tools";
 import axios from "axios";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -8,6 +7,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { Resolver } from "did-resolver";
+import { getResolver } from "web-did-resolver"
+import { verifyCredential } from "did-jwt-vc";
 
 const Through = require("stream").PassThrough;
 const { setTimeout } = require('timers/promises');
@@ -457,41 +459,28 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
   return retParam;
 }
 
-//<---- ヘッダを参照してDID:WEB公開鍵を返す ---->
+//<---- ヘッダを参照してDid Documentとresolverを返す ---->
 
-async function resolveHeader( header )
-{
-  let resolvePubKey = null;
-  let kid = null;
-
-  for(let i=0; resolvePubKey == null && i<COMM_RETRY_MAX; i++) {
+async function resolveDid(vcHeader) {
+  let didDoc;
+  const webResolver = getResolver()
+  const resolver = new Resolver(webResolver)
+  const kid = vcHeader.kid;
+  
+  for(let i=0; didDoc == null && i<COMM_RETRY_MAX; i++) {
     try{
-      kid = header.kid;
-      let kids = kid.split('#');
-      let controller = kids[0];
-      let id = '#' + kids[1];
-      let diddoc = await resolve(kid);
-
-      loggerDebug(diddoc);
-      loggerDebug(diddoc.didDocument.verificationMethod);
-
-      diddoc.didDocument.verificationMethod.forEach( vm => {
-        if(controller == vm.controller && id == vm.id) {
-          resolvePubKey = vm.publicKeyJwk;
-        }
-      });
+      didDoc = await resolver.resolve(kid)
+    } catch(exp) {
+        loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
+      }
     }
-    catch(exp) {
-      loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
+  
+    if(didDoc == null) {
+      loggerError('ERROR, did:web resolve fail, retry out, header.kid=' + kid);
     }
-  }
-
-  if(resolvePubKey == null) {
-    loggerError('ERROR, did:web resolve fail, retry out, header.kid=' + kid);
-  }
-
-  loggerDebug(resolvePubKey);
-  return resolvePubKey;
+  
+    loggerDebug(JSON.stringify(didDoc));
+    return { didDoc, resolver };
 }
 
 //<---- VC署名チェック ---->
@@ -505,30 +494,21 @@ async function checkValidationVc(vcHeader, vcPayload, vcJwt)
   //  return retStatus;
   //}
 
-  //DID:WEBから公開鍵を取得
-  let pubKey;
-  //if(debugData.publicKey != null) {
-  //  // for-debug
-  //  pubKey = debugData.publicKey;
-  //}
-  //else
-  {
-    pubKey = await resolveHeader(vcHeader);
-    if(pubKey == null) {
-      retStatus.fail = true;
-      retStatus.status_code = 400;
-      retStatus.reason_code = 103;
-      retStatus.reason_msg = 'Error, cannot publilcKey form vcHeader.';
-      return retStatus;
-    }
+  const { didDoc, resolver } = await resolveDid(vcHeader)
+
+  if(didDoc == null || resolver == null) {
+    retStatus.fail = true;
+    retStatus.status_code = 400;
+    retStatus.reason_code = 103;
+    retStatus.reason_msg = 'Error, cannot resolve did.';
+    return retStatus;
   }
-
-  loggerDebug(pubKey);
-
+  
   //VC署名検証
   let verifyRet = false;
   try {
-    verifyRet = await verify({jws: vcJwt, publicJwk: pubKey});
+    const result = await verifyCredential(vcJwt, resolver)
+    verifyRet = result.verified;
   } catch (exceptionVar) {
     loggerError("ERROR: API submission_badge, vefiry Jws check Exception.");
     loggerError(exceptionVar);
