@@ -1,15 +1,15 @@
 import crypto from "crypto";
 
 import axios from "axios";
+import { verifyCredential } from "did-jwt-vc";
+import { Resolver } from "did-resolver";
+import { getResolver } from "web-did-resolver"
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { Resolver } from "did-resolver";
-import { getResolver } from "web-did-resolver"
-import { verifyCredential } from "did-jwt-vc";
 
 const Through = require("stream").PassThrough;
 const { setTimeout } = require('timers/promises');
