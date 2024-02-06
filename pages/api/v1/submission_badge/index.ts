@@ -16,9 +16,8 @@ const { setTimeout } = require('timers/promises');
 
 const pngitxt = require("png-itxt");
 
-
-
-const COMM_RETRY_MAX = 3;
+import { retryRequest, retryRequestForBadgeVerify } from "@/lib/retryRequest";
+import { badgeDataRetryConfig, openbadgeVerifyRetryConfig, resolveDIDRetryConfig } from "@/configs/retry";
 
 const retStatusInit = {
   fail: false,
@@ -204,27 +203,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
     if(typeof(badgeMetaData.badge) === 'string' && badgeMetaData.badge.startsWith('http')) {
       //Badge情報をメタデータ埋め込みURLから取得
-      for(let i=0; i<COMM_RETRY_MAX; i++) {
-        try {
-          await axios.get<any>(badgeMetaData.badge)
+      await retryRequest(() => {
+        return axios.get<any>(badgeMetaData.badge)
           .then((resp) => {
             loggerDebug(resp.data);
             badge = resp.data;
           });
-        }
-        catch(exp) {
-          if(i < COMM_RETRY_MAX - 1) {
-            loggerWarn('WARN, get Badge Info form badgeMetaData URL fail, ' + badgeMetaData.badge);
-            continue;
-          }
-          else {
-            loggerWarn('WARN, get Badge Info form badgeMetaData URL fail, retry out,' + badgeMetaData.badge);
-            throw exp;
-          }
-        }
-
-        break;
-      }
+      }, badgeDataRetryConfig)
     }
 
     badgeName =  badge.name;
@@ -233,27 +218,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
     if(typeof(badge.issuer) === 'string' && badge.issuer.startsWith('http')) {
       //Issure情報をメタデータ埋め込みURLから取得
-      for(let i=0; i<COMM_RETRY_MAX; i++) {
-        try {
-          await axios.get<any>(badge.issuer)
+      await retryRequest(() => {
+        return axios.get<any>(badge.issuer)
           .then((resp) => {
             loggerDebug(resp.data);
             badge.issuer = resp.data;
           });
-        }
-        catch(exp) {
-          if(i < COMM_RETRY_MAX - 1) {
-            loggerWarn('WARN, get Issuer Name form badgeMetaData URL fail, ' + badge.issuer);
-            continue;
-          }
-          else {
-            loggerWarn('WARN, get Issuer Name form badgeMetaData URL fail, retry out,' + badge.issuer);
-            throw exp;
-          }
-        }
-
-        break;
-      }
+      }, badgeDataRetryConfig)
     }
 
     badgeIssName = badge.issuer.name;
@@ -467,20 +438,20 @@ async function resolveDid(vcHeader) {
   const resolver = new Resolver(webResolver)
   const kid = vcHeader.kid;
   
-  for(let i=0; didDoc == null && i<COMM_RETRY_MAX; i++) {
-    try{
-      didDoc = await resolver.resolve(kid)
-    } catch(exp) {
-        loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
-      }
-    }
-  
-    if(didDoc == null) {
-      loggerError('ERROR, did:web resolve fail, retry out, header.kid=' + kid);
-    }
-  
-    loggerDebug(JSON.stringify(didDoc));
-    return { didDoc, resolver };
+  try{
+    didDoc = await retryRequest(() => {
+      return resolver.resolve(kid)
+    }, resolveDIDRetryConfig)
+  } catch(exp) {
+    loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
+  }
+
+  if(didDoc == null) {
+    loggerError('ERROR, did:web resolve fail, retry out, header.kid=' + kid);
+  }
+
+  loggerDebug(JSON.stringify(didDoc));
+  return { didDoc, resolver };
 }
 
 //<---- VC署名チェック ---->
@@ -631,36 +602,22 @@ export const validateOpenBadge = async (
     }
   }
 
-  const postProc = axios.post(
-    OPENBADGE_VERIFIER_URL,
-    {
-      data: JSON.stringify(openBadgeMetadata),
-    },
-    {
-      headers: {
-        Accept: "application/json",
-      },
-    }
-  );
 
   let retValidate;
   try {
-    for(let i=0; i < COMM_RETRY_MAX; i++) {
-      try {
-        retValidate = await postProc;
-      }
-      catch(exp) {
-        if(i < COMM_RETRY_MAX - 1) {
-          loggerWarn(`ERROR: API submission_badge: OpenBadge validaterURL POST exception.`);
-          continue;
+    retValidate = await retryRequestForBadgeVerify(() => {
+      return axios.post(
+        OPENBADGE_VERIFIER_URL,
+        {
+          data: JSON.stringify(openBadgeMetadata),
+        },
+        {
+          headers: {
+            Accept: "application/json",
+          },
         }
-        else {
-          throw exp;
-        }
-      }
-
-      break;
-    }
+      );
+    }, openbadgeVerifyRetryConfig)
   }
   catch(exp) {
     loggerError(`ERROR: API submission_badge: OpenBadge validaterURL POST exception, retry out.`);
