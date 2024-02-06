@@ -202,6 +202,12 @@ https://nextjs.org/docs/pages/building-your-application/configuring/environment-
 |baseURL|アプリケーション起動時のURL|http://localhost:3000|必須|
 |NEXT_PUBLIC_USERLIST_TITLE|学習者一覧画面に表示されるタイトル文字列|-|必須|
 |NEXT_PUBLIC_HELP_LINK|ヘッダの「ヘルプ」をクリックした場合に開かれるURL|-|必須|
+|badge_data_request_retry_count|バッジデータ取得時のリトライ回数設定|-|必須|
+|badge_data_request_retry_time|バッジデータ取得時のリトライ間隔（ms）設定|-|必須|
+|oepnbadge_verify_api_request_retry_count|openbadge検証用APIアクセス失敗時のリトライ回数設定|-|必須|
+|oepnbadge_verify_api_request_retry_time|openbadge検証用APIアクセス失敗時のリトライ間隔（ms）設定|-|必須|
+|resolve_did_request_retry_count|didの名前解決を行う際のリトライ回数設定|-|必須|
+|resolve_did_request_retry_time|didの名前解決を行う際のリトライ間隔（ms）設定|-|必須|
 
 ## 5-3. nginxの設定
 nginx.conf ファイルの以下箇所を編集します。
@@ -309,3 +315,20 @@ BASIC認証ファイルを配置する事により認証設定を行います。
 1. 削除前に警告ダイアログが2回表示されますのでいずれも`OK`を選択します。
 1. 通信が正常に行われた場合提出された能力バッジ情報が全てDBから削除されます。また登録されていた学習者一覧情報もDBから削除されます。
 
+# 10 外部リクエスト時のリトライ回数、間隔設定
+/configs/retry.ts に設定されている値は、環境変数によって定義された各外部サービスに対するリトライ回数とリトライ間隔を定義したファイルです。
+
+下記の形式に合わせて、設定した環境変数をConfig関数として割り当ててください。
+```
+export const badgeDataConfig: RetryConfig = {
+  count: Number(process.env.badge_data_request_retry_count),
+  time: Number(process.env.badge_data_request_retry_time),
+};
+```
+
+実際にリトライ処理を実装する場合は、以下のようにlib/retryRequest.ts に定義されている関数を使用してください。第一引数にPromiseを返却する関数、第二引数に先ほど定義したconfigデータを指定します。
+```
+    const { data } = await retryRequest(() => {
+      return axios(options);
+    }, badgeDataConfig);
+```

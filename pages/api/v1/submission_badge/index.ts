@@ -10,8 +10,8 @@ const Through = require("stream").PassThrough;
 
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
-
-const COMM_RETRY_MAX = 3;
+import { retryRequest, retryRequestForBadgeVerify } from "@/lib/retryRequest";
+import { badgeDataRetryConfig, openbadgeVerifyRetryConfig, resolveDIDRetryConfig } from "@/configs/retry";
 
 const retStatusInit = {
   fail: false,
@@ -197,27 +197,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
     if(typeof(badgeMetaData.badge) === 'string' && badgeMetaData.badge.startsWith('http')) {
       //Badge情報をメタデータ埋め込みURLから取得
-      for(let i=0; i<COMM_RETRY_MAX; i++) {
-        try {
-          await axios.get<any>(badgeMetaData.badge)
+      await retryRequest(() => {
+        return axios.get<any>(badgeMetaData.badge)
           .then((resp) => {
             loggerDebug(resp.data);
             badge = resp.data;
           });
-        }
-        catch(exp) {
-          if(i < COMM_RETRY_MAX - 1) {
-            loggerWarn('WARN, get Badge Info form badgeMetaData URL fail, ' + badgeMetaData.badge);
-            continue;
-          }
-          else {
-            loggerWarn('WARN, get Badge Info form badgeMetaData URL fail, retry out,' + badgeMetaData.badge);
-            throw exp;
-          }
-        }
-
-        break;
-      }
+      }, badgeDataRetryConfig)
     }
 
     badgeName =  badge.name;
@@ -226,27 +212,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
     if(typeof(badge.issuer) === 'string' && badge.issuer.startsWith('http')) {
       //Issure情報をメタデータ埋め込みURLから取得
-      for(let i=0; i<COMM_RETRY_MAX; i++) {
-        try {
-          await axios.get<any>(badge.issuer)
+      await retryRequest(() => {
+        return axios.get<any>(badge.issuer)
           .then((resp) => {
             loggerDebug(resp.data);
             badge.issuer = resp.data;
           });
-        }
-        catch(exp) {
-          if(i < COMM_RETRY_MAX - 1) {
-            loggerWarn('WARN, get Issuer Name form badgeMetaData URL fail, ' + badge.issuer);
-            continue;
-          }
-          else {
-            loggerWarn('WARN, get Issuer Name form badgeMetaData URL fail, retry out,' + badge.issuer);
-            throw exp;
-          }
-        }
-
-        break;
-      }
+      }, badgeDataRetryConfig)
     }
 
     badgeIssName = badge.issuer.name;
@@ -459,26 +431,26 @@ async function resolveHeader( header )
   let resolvePubKey = null;
   let kid = null;
 
-  for(let i=0; resolvePubKey == null && i<COMM_RETRY_MAX; i++) {
-    try{
-      kid = header.kid;
-      let kids = kid.split('#');
-      let controller = kids[0];
-      let id = '#' + kids[1];
-      let diddoc = await ION.resolve(kid);
+  try{
+    kid = header.kid;
+    let kids = kid.split('#');
+    let controller = kids[0];
+    let id = '#' + kids[1];
+    let diddoc = await retryRequest(() => {
+      return ION.resolve(kid);
+    }, resolveDIDRetryConfig) 
 
-      loggerDebug(diddoc);
-      loggerDebug(diddoc.didDocument.verificationMethod);
+    loggerDebug(diddoc);
+    loggerDebug(diddoc.didDocument.verificationMethod);
 
-      diddoc.didDocument.verificationMethod.forEach( vm => {
-        if(controller == vm.controller && id == vm.id) {
-          resolvePubKey = vm.publicKeyJwk;
-        }
-      });
-    }
-    catch(exp) {
-      loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
-    }
+    diddoc.didDocument.verificationMethod.forEach( vm => {
+      if(controller == vm.controller && id == vm.id) {
+        resolvePubKey = vm.publicKeyJwk;
+      }
+    });
+  }
+  catch(exp) {
+    loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
   }
 
   if(resolvePubKey == null) {
@@ -646,36 +618,22 @@ export const validateOpenBadge = async (
     }
   }
 
-  const postProc = axios.post(
-    OPENBADGE_VERIFIER_URL,
-    {
-      data: JSON.stringify(openBadgeMetadata),
-    },
-    {
-      headers: {
-        Accept: "application/json",
-      },
-    }
-  );
 
   let retValidate;
   try {
-    for(let i=0; i < COMM_RETRY_MAX; i++) {
-      try {
-        retValidate = await postProc;
-      }
-      catch(exp) {
-        if(i < COMM_RETRY_MAX - 1) {
-          loggerWarn(`ERROR: API submission_badge: OpenBadge validaterURL POST exception.`);
-          continue;
+    retValidate = await retryRequestForBadgeVerify(() => {
+      return axios.post(
+        OPENBADGE_VERIFIER_URL,
+        {
+          data: JSON.stringify(openBadgeMetadata),
+        },
+        {
+          headers: {
+            Accept: "application/json",
+          },
         }
-        else {
-          throw exp;
-        }
-      }
-
-      break;
-    }
+      );
+    }, openbadgeVerifyRetryConfig)
   }
   catch(exp) {
     loggerError(`ERROR: API submission_badge: OpenBadge validaterURL POST exception, retry out.`);
