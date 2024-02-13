@@ -1,5 +1,5 @@
+import { loggerWarn } from "@/lib/logger";
 import { RetryConfig } from "@/types/config";
-import { loggerWarn } from "./logger";
 
 const wait = (delay: number) => {
   return new Promise((resolve) => setTimeout(resolve, delay));

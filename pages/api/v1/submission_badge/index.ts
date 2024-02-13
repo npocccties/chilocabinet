@@ -1,17 +1,23 @@
+import crypto from "crypto";
+
+import axios from "axios";
+import { verifyCredential } from "did-jwt-vc";
+import { Resolver } from "did-resolver";
+import { getResolver } from "web-did-resolver"
+
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
+import { badgeDataRetryConfig, openbadgeVerifyRetryConfig, resolveDIDRetryConfig } from "@/configs/retry";
+import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { retryRequest, retryRequestForBadgeVerify } from "@/lib/retryRequest";
+
+const Through = require("stream").PassThrough;
 const { setTimeout } = require('timers/promises');
 
-import ION from "@decentralized-identity/ion-tools";
-import crypto from "crypto";
-import axios from "axios";
 const pngitxt = require("png-itxt");
-const Through = require("stream").PassThrough;
 
-import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
-import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
-import { retryRequest, retryRequestForBadgeVerify } from "@/lib/retryRequest";
-import { badgeDataRetryConfig, openbadgeVerifyRetryConfig, resolveDIDRetryConfig } from "@/configs/retry";
 
 const retStatusInit = {
   fail: false,
@@ -424,41 +430,28 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
   return retParam;
 }
 
-//<---- ヘッダを参照してDID:WEB公開鍵を返す ---->
+//<---- ヘッダを参照してDid Documentとresolverを返す ---->
 
-async function resolveHeader( header )
-{
-  let resolvePubKey = null;
-  let kid = null;
-
+async function resolveDid(vcHeader) {
+  let didDoc;
+  const webResolver = getResolver()
+  const resolver = new Resolver(webResolver)
+  const kid = vcHeader.kid;
+  
   try{
-    kid = header.kid;
-    let kids = kid.split('#');
-    let controller = kids[0];
-    let id = '#' + kids[1];
-    let diddoc = await retryRequest(() => {
-      return ION.resolve(kid);
-    }, resolveDIDRetryConfig) 
-
-    loggerDebug(diddoc);
-    loggerDebug(diddoc.didDocument.verificationMethod);
-
-    diddoc.didDocument.verificationMethod.forEach( vm => {
-      if(controller == vm.controller && id == vm.id) {
-        resolvePubKey = vm.publicKeyJwk;
-      }
-    });
-  }
-  catch(exp) {
+    didDoc = await retryRequest(() => {
+      return resolver.resolve(kid)
+    }, resolveDIDRetryConfig)
+  } catch(exp) {
     loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
   }
 
-  if(resolvePubKey == null) {
+  if(didDoc == null) {
     loggerError('ERROR, did:web resolve fail, retry out, header.kid=' + kid);
   }
 
-  loggerDebug(resolvePubKey);
-  return resolvePubKey;
+  loggerDebug(JSON.stringify(didDoc));
+  return { didDoc, resolver };
 }
 
 //<---- VC署名チェック ---->
@@ -472,33 +465,24 @@ async function checkValidationVc(vcHeader, vcPayload, vcJwt)
   //  return retStatus;
   //}
 
-  //DID:WEBから公開鍵を取得
-  let pubKey;
-  //if(debugData.publicKey != null) {
-  //  // for-debug
-  //  pubKey = debugData.publicKey;
-  //}
-  //else
-  {
-    pubKey = await resolveHeader(vcHeader);
-    if(pubKey == null) {
-      retStatus.fail = true;
-      retStatus.status_code = 400;
-      retStatus.reason_code = 103;
-      retStatus.reason_msg = 'Error, cannot publilcKey form vcHeader.';
-      return retStatus;
-    }
+  const { didDoc, resolver } = await resolveDid(vcHeader)
+
+  if(didDoc == null || resolver == null) {
+    retStatus.fail = true;
+    retStatus.status_code = 400;
+    retStatus.reason_code = 103;
+    retStatus.reason_msg = 'Error, cannot resolve did.';
+    return retStatus;
   }
-
-  loggerDebug(pubKey);
-
+  
   //VC署名検証
   let verifyRet = false;
   try {
-    verifyRet = await ION.verifyJws({jws: vcJwt, publicJwk: pubKey});
+    const result = await verifyCredential(vcJwt, resolver)
+    verifyRet = result.verified;
   } catch (exceptionVar) {
     loggerError("ERROR: API submission_badge, vefiry Jws check Exception.");
-    loggerError(exceptionVar);
+    loggerError(exceptionVar?.message);
   };
 
   if(verifyRet == false) {
