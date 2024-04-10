@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
-import { ThemeProvider, createTheme } from '@mui/material';
-import { MaterialReactTable } from 'material-react-table';
 import { Link, Flex, Box, Button, Spinner } from "@chakra-ui/react";
+import { ThemeProvider, createTheme } from '@mui/material';
+import axios from "axios";
+import { MaterialReactTable } from 'material-react-table';
+import React, { useState, useEffect, useMemo } from "react";
 
 import {
   AppPage,
@@ -603,7 +603,7 @@ function parseCsvLine(line)
   return line.split(',').reduce(([data, isInQuotes], text) => {
     if (isInQuotes) {
       data[data.length - 1] += ',' + text.replace(/"+/g, m => '"'.repeat(m.length / 2))
-      return [data, !(text.match(/"*$/)[0].length % 2)]
+      return [data, !(text.match(/"*$/)[0].length % 2)];
     } else {
       const match = text.match(/^("?)((.*?)("*))$/)
       data.push(match[1] ? match[2].replace(/"+/g, m => '"'.repeat(m.length / 2)) : match[2])

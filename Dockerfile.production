@@ -26,7 +26,7 @@ COPY . .
 COPY .env.production .env.production
 
 RUN npx prisma generate
-RUN yarn build
+RUN NODE_OPTIONS=--max_old_space_size=3072 yarn build
 
 # runner stage
 FROM base AS runner
@@ -43,13 +43,6 @@ COPY --from=builder /app/.env.production ./
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-#COPY --from=builder /app/node_modules/prisma/prisma/client ./node_modules/prisma/prisma/client
-
-USER nextjs
-
-EXPOSE 3000
-
-ENV PORT 3000
-ENV HOSTNAME localhost
 
 CMD ["yarn", "cmd:start:dev"]
+

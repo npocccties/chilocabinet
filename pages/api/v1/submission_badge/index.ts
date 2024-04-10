@@ -1,15 +1,23 @@
+import crypto from "crypto";
+
+import axios from "axios";
+import { verifyCredential } from "did-jwt-vc";
+import { Resolver } from "did-resolver";
+import { getResolver } from "web-did-resolver"
+
 import type { NextApiRequest, NextApiResponse } from "next";
+
+import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
+import { badgeDataRetryConfig, openbadgeVerifyRetryConfig, resolveDIDRetryConfig } from "@/configs/retry";
+import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { retryRequest, retryRequestForBadgeVerify } from "@/lib/retryRequest";
+
+const Through = require("stream").PassThrough;
 const { setTimeout } = require('timers/promises');
 
-import ION from "@decentralized-identity/ion-tools";
-import crypto from "crypto";
-import axios from "axios";
 const pngitxt = require("png-itxt");
-const Through = require("stream").PassThrough;
 
-import {loggerError, loggerInfo, loggerDebug } from "@/lib/logger";
-import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
 
 const retStatusInit = {
   fail: false,
@@ -79,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(retStatus.status_code == null) {
       retStatus.status_code = 200
     }
-    
+
     if(retStatus.reason_code == null) {
       retStatus.reason_code = 0;
     }
@@ -94,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `badgeName=${resBadge.badge != null && resBadge.badge.name != null ? resBadge.badge.name : ""}`);
   }
   else {
-    loggerError(`Error: API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`); 
+    loggerError(`Error: API submission_badge: result Error. status=${retStatus.status_code}, reason=${retStatus.reason_code}, msg=${retStatus.reason_msg}`);
   }
 
   res.status(retStatus.status_code).json({reason_code: retStatus.reason_code, reason_msg: retStatus.reason_msg});
@@ -134,7 +142,7 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
   try {
     vcSubEMail = vcPayload.vc.credentialSubject.email;
     vcExp = vcPayload.exp;
-    vcPhoto = vcPayload.vc.credentialSubject.photo;    
+    vcPhoto = vcPayload.vc.credentialSubject.photo;
   }
   catch(exp) {
     loggerError(`ERROR: API submission_badge: VC data parse Error, not exist data Exception.`);
@@ -195,11 +203,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
     if(typeof(badgeMetaData.badge) === 'string' && badgeMetaData.badge.startsWith('http')) {
       //Badge情報をメタデータ埋め込みURLから取得
-      await axios.get<any>(badgeMetaData.badge)
-      .then((resp) => {
-        loggerDebug(resp.data);
-        badge = resp.data;
-      });
+      await retryRequest(() => {
+        return axios.get<any>(badgeMetaData.badge)
+          .then((resp) => {
+            loggerDebug(resp.data);
+            badge = resp.data;
+          });
+      }, badgeDataRetryConfig)
     }
 
     badgeName =  badge.name;
@@ -208,11 +218,13 @@ async function submissionBadgeProc(userID, userEMail: string, vcJwt: string, res
 
     if(typeof(badge.issuer) === 'string' && badge.issuer.startsWith('http')) {
       //Issure情報をメタデータ埋め込みURLから取得
-      await axios.get<any>(badge.issuer)
-      .then((resp) => {
-        loggerDebug(resp.data);
-        badge.issuer = resp.data;
-      });
+      await retryRequest(() => {
+        return axios.get<any>(badge.issuer)
+          .then((resp) => {
+            loggerDebug(resp.data);
+            badge.issuer = resp.data;
+          });
+      }, badgeDataRetryConfig)
     }
 
     badgeIssName = badge.issuer.name;
@@ -418,35 +430,28 @@ async function checkInputParam(userID: string, userEMail: string, vcJwt: string)
   return retParam;
 }
 
-//<---- ヘッダを参照してDID:WEB公開鍵を返す ---->
+//<---- ヘッダを参照してDid Documentとresolverを返す ---->
 
-async function resolveHeader( header )
-{
-  let resolvePubKey = null;
-  let kid = null;
-
+async function resolveDid(vcHeader) {
+  let didDoc;
+  const webResolver = getResolver()
+  const resolver = new Resolver(webResolver)
+  const kid = vcHeader.kid;
+  
   try{
-    kid = header.kid;
-    let kids = kid.split('#');
-    let controller = kids[0];
-    let id = '#' + kids[1];
-    let diddoc = await ION.resolve(kid);
-
-    loggerDebug(diddoc);
-    loggerDebug(diddoc.didDocument.verificationMethod);
-
-    diddoc.didDocument.verificationMethod.forEach( vm => {
-      if(controller == vm.controller && id == vm.id) {
-        resolvePubKey = vm.publicKeyJwk;
-      }
-    });
-  }
-  catch(exp) {
-    loggerError('ERROR, did:web resolve error, header.kid=' + kid);
+    didDoc = await retryRequest(() => {
+      return resolver.resolve(kid)
+    }, resolveDIDRetryConfig)
+  } catch(exp) {
+    loggerWarn('WARN, did:web resolve fail, header.kid=' + kid);
   }
 
-  loggerDebug(resolvePubKey);
-  return resolvePubKey;
+  if(didDoc == null) {
+    loggerError('ERROR, did:web resolve fail, retry out, header.kid=' + kid);
+  }
+
+  loggerDebug(JSON.stringify(didDoc));
+  return { didDoc, resolver };
 }
 
 //<---- VC署名チェック ---->
@@ -460,33 +465,24 @@ async function checkValidationVc(vcHeader, vcPayload, vcJwt)
   //  return retStatus;
   //}
 
-  //DID:WEBから公開鍵を取得
-  let pubKey;
-  //if(debugData.publicKey != null) { 
-  //  // for-debug
-  //  pubKey = debugData.publicKey;
-  //}
-  //else
-  {
-    pubKey = await resolveHeader(vcHeader);
-    if(pubKey == null) {
-      retStatus.fail = true;
-      retStatus.status_code = 400;
-      retStatus.reason_code = 103;
-      retStatus.reason_msg = 'Error, cannot publilcKey form vcHeader.';
-      return retStatus;
-    }
+  const { didDoc, resolver } = await resolveDid(vcHeader)
+
+  if(didDoc == null || resolver == null) {
+    retStatus.fail = true;
+    retStatus.status_code = 400;
+    retStatus.reason_code = 103;
+    retStatus.reason_msg = 'Error, cannot resolve did.';
+    return retStatus;
   }
-
-  loggerDebug(pubKey);
-
+  
   //VC署名検証
   let verifyRet = false;
   try {
-    verifyRet = await ION.verifyJws({jws: vcJwt, publicJwk: pubKey});
+    const result = await verifyCredential(vcJwt, resolver)
+    verifyRet = result.verified;
   } catch (exceptionVar) {
     loggerError("ERROR: API submission_badge, vefiry Jws check Exception.");
-    loggerError(exceptionVar);
+    loggerError(exceptionVar?.message);
   };
 
   if(verifyRet == false) {
@@ -546,7 +542,7 @@ export const extractOpenBadgeMetadataFromImage = async (imageString: string) => 
         try {
           ret = JSON.parse(data.value);
           resolve(ret);
-        }    
+        }
         catch(exp) {
           retErr = 'PNG iTxt data cannot get. (no data, or parse error)';
           loggerError("ERROR: submission_badge, PNG iTxt data cannot get. (no data, or parse error)");
@@ -606,26 +602,26 @@ export const validateOpenBadge = async (
     }
   }
 
-  const postProc = axios.post(
-    OPENBADGE_VERIFIER_URL,
-    {
-      data: JSON.stringify(openBadgeMetadata),
-    },
-    {
-      headers: {
-        Accept: "application/json",
-      },
-    }
-  );
 
-  let retValidate;  
+  let retValidate;
   try {
-    retValidate = await postProc;
+    retValidate = await retryRequestForBadgeVerify(() => {
+      return axios.post(
+        OPENBADGE_VERIFIER_URL,
+        {
+          data: JSON.stringify(openBadgeMetadata),
+        },
+        {
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+    }, openbadgeVerifyRetryConfig)
   }
   catch(exp) {
-    loggerError(`ERROR: API submission_badge: OpenBadge validaterURL POST exception.`);
+    loggerError(`ERROR: API submission_badge: OpenBadge validaterURL POST exception, retry out.`);
     loggerError(exp);
-
 
     //if(debugData.skipCheckBadgeMetaData == false)
     {
@@ -638,7 +634,7 @@ export const validateOpenBadge = async (
 
   let result;
   let msg;
-  if( retValidate != null && retValidate.data != null && retValidate.data.report != null && retValidate.data.report.valid != null) { 
+  if( retValidate != null && retValidate.data != null && retValidate.data.report != null && retValidate.data.report.valid != null) {
     result = retValidate.data.report.valid;
     msg = JSON.stringify(retValidate.data.report);
   }

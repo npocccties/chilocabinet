@@ -4,8 +4,8 @@ services:
   web:
     image: nginx:1.23.1
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     networks:
       - app_network
     volumes:
@@ -22,7 +22,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.dev-server
+      dockerfile: Dockerfile.production
     ports:
       - "3000:3000"
     networks:
