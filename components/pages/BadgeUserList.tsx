@@ -3,6 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import axios from "axios";
 import { MaterialReactTable } from 'material-react-table';
 import React, { useState, useEffect, useMemo } from "react";
+import Encoding from 'encoding-japanese';
 
 import { EXPORT_CSV_VER } from "@/configs/constants"
 import {
@@ -12,6 +13,7 @@ import {
   useAppState_BadgeUserList,
   useAppState_Dialog,
 } from "@/share/store/appState/main";
+import { CsvExportFormData } from "../Data";
 
 //<---- バッジ提出者一覧画面コンポーネント ---->
 
@@ -28,6 +30,7 @@ export const BadgeUserList = () => {
 
   let startComm = false;
   let startCommCsv = false;
+  let csvExportFormData: CsvExportFormData = null;
 
   //<---- 画面遷移時の処理 ---->
 
@@ -42,8 +45,9 @@ export const BadgeUserList = () => {
   //<---- ダイアログCLOSE時の処理 ---->
 
   if(statePage.page == AppPage.BadgeUserList && statePage.lock == false && resultDialog != null) {
-    if(resultDialog.type == 3 && resultDialog.yesno === true) {
+    if(resultDialog.type == 3 && resultDialog.yesno === true && resultDialog.formData != null) {
       startCommCsv = true;
+      csvExportFormData = resultDialog.formData;
       statePage = {...statePage, event: AppEvent.CommExportCsv, lock: true};
     }
   }
@@ -164,19 +168,37 @@ export const BadgeUserList = () => {
         const exportCSV = async (records) => {
 
           let data = records.map((o) => {
-             return [
-               EXPORT_CSV_VER,
-               convert(o.userID),
-               convert(o.badgeName),
-               convert(o.badgeDescription),
-               convert(o.badgeIssuerName),
-               convert(o.badgeIssuedOn),
-             ].join(','); 
+            return [
+             "",
+             convert(o.userID),
+              convert(o.badgeName),
+              convert(o.badgeDescription),
+              "",
+              convert(o.badgeIssuerName),
+              convert(csvExportFormData.indicatorCode),
+              convert(csvExportFormData.trainingFlags),
+              convert(csvExportFormData.trainingAttribute),
+              convert(csvExportFormData.startDate),
+              convert(csvExportFormData.endDate),
+              convert(csvExportFormData.trainingThemes),
+              "",
+              "",
+              "",
+              "",
+              "",
+            ].join(',');
           }).join('\r\n');
 
-          let header = "CSVバージョン,ID,バッジ名,バッジ説明,バッジ発行者名,バッジ発行日\r\n";
-          let bom  = new Uint8Array([0xEF, 0xBB, 0xBF]);
-          let blob = new Blob([bom, header, data], {type: 'text/csv'});
+          let header = "ID,受講者ログインID,研修名,研修概要,研修コード,研修実施・運営者,指標一般コード,研修フラグ,研修属性コード,開始日,終了日,研修テーマ,育成指標(教員向け),育成指標(校長向け),キャリアステージ,受講した気づき・所感,削除\r\n";
+          let blob: Blob;
+          if (csvExportFormData.encoding == "Shift-JIS") {
+            const sjisData = Encoding.convert(header + data, {to: 'SJIS', from: 'UNICODE', type: 'arraybuffer'});
+            const uint8Array = new Uint8Array(sjisData);
+            blob = new Blob([uint8Array], {type: "text/csv;charset=shift-jis"});
+          } else {
+            let bom  = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            blob = new Blob([bom, header, data], {type: "text/csv;"});
+          }
 
           //ブラウザからファイル保存
           let url = (window.URL || window.webkitURL).createObjectURL(blob);
