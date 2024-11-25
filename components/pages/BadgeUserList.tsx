@@ -444,7 +444,6 @@ export const BadgeUserList = () => {
                 columns={[
                   { minSize: 300, header: 'ID', accessorKey: 'id' },
                   { minSize: 300, header: '提出者名', accessorKey: 'name' },
-                  { minSize: 300, header: 'Emailアドレス', accessorKey: 'mail' },
                   { minSize: 50, header: '提出日', accessorKey: 'submittedDate' },
                   { minSize: 210, header: 'CSVファイル未出力', accessorKey: 'downloaded', enableGlobalFilter: false, enableColumnFilter: false, enableFilterMatchHighlighting : false },
                 ]}
@@ -493,7 +492,6 @@ export const BadgeUserList = () => {
               <MaterialReactTable
                 columns={[
                   { minSize: 400, header: 'ID', accessorKey: 'id' },
-                  { minSize: 400, header: 'Emailアドレス', accessorKey: 'mail' },
                   { minSize: 100, header: '提出日', accessorKey: 'submittedDate' },
                 ]}
                 data={tableData == null ? [] : tableDataNotApp}
