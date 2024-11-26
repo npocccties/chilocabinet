@@ -143,7 +143,7 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                 </GridItem>
                 <GridItem colSpan={2}>
                   <FormLabel htmlFor="trainingFlags" mt={4} fontWeight="bold">
-                    研修フラグ
+                    研修フラグ（複数選択可）
                   </FormLabel>
                   <CheckboxGroup colorScheme="blue" >
                     <Stack direction="row" spacing={6}>
@@ -201,7 +201,7 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                 </GridItem>
                 <GridItem colSpan={2}>
                   <FormLabel htmlFor="trainingThemes" mt={4} fontWeight="bold">
-                    研修テーマ
+                    研修テーマ（複数選択可）
                   </FormLabel>
                   <CheckboxGroup colorScheme="blue">
                     <Stack direction="row" wrap="wrap" spacing={6}>
