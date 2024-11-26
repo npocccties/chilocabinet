@@ -8,7 +8,6 @@ import {
 import React, { useState, useEffect, useMemo } from "react";
 import Encoding from 'encoding-japanese';
 
-import { EXPORT_CSV_VER } from "@/configs/constants"
 import {
   AppPage,
   AppEvent,

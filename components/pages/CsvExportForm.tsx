@@ -4,13 +4,6 @@ import {
   FormControl,
   Input,
   GridItem,
-  Box,
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionIcon,
-  AccordionPanel,
-  Flex,
   FormLabel,
   Text,
   Select,
@@ -21,18 +14,16 @@ import {
   Radio,
   AlertDialogContent,
   AlertDialogHeader,
-  AlertDialogCloseButton,
   AlertDialogBody,
   AlertDialogFooter,
   Button,
   useCheckboxGroup,
-  FormErrorMessage,
   useRadioGroup,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAfter, isSameDay } from "date-fns";
 import React, { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CsvExportFormData } from "../Data";
 
@@ -53,7 +44,7 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
   const [trainingAttributeError, setTrainingAttributeError] = useState("");
   const { value: trainingFlags, getCheckboxProps: getTrainingFlagsProps } = useCheckboxGroup();
   const { value: trainingThemes, getCheckboxProps: getTrainingThemesProps } = useCheckboxGroup();
-  const { value: encode, getRadioProps: getEncodeProps, setValue: setEncodeValue } = useRadioGroup();
+  const { value: encode, getRadioProps: getEncodeProps } = useRadioGroup();
   const [encodeError, setEncodeError] = useState("");
   const formSchema = z
     .object({
@@ -81,11 +72,10 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
       },
     );
   const {
-    control,
     register,
     handleSubmit,
     watch,
-    formState: { isSubmitting, errors },
+    formState: { errors },
   } = useForm<CsvExportFormData>({ resolver: zodResolver(formSchema) });
   const { startDate, endDate } = watch();
 
