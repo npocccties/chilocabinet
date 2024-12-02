@@ -7,15 +7,15 @@ import prisma from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse)
 {
-  loggerDebug(req.body);
+  loggerDebug(req, req.body);
 
   try {
     if(req.body.type == 'download') {
-      loggerInfo("API userliset, start get info.");
+      loggerInfo(req, "API userliset, start get info.");
       await proc_download(req, res);
     }
     else if(req.body.type == 'upload') {
-      loggerInfo("API userliset, start upload CSV.");
+      loggerInfo(req, "API userliset, start upload CSV.");
       await proc_upload(req, res);
     }
     else {
@@ -23,8 +23,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
   catch(exp) {
-    loggerError("ERROR: API userliset, Exception.");    
-    loggerError(exp);
+    loggerError(req, "ERROR: API userliset, Exception.");    
+    loggerError(req, exp);
   }
 
   return;
@@ -50,8 +50,8 @@ async function proc_download(req, res)
     });
   }
   catch(exp) {
-    loggerError("ERROR: API userlist, get userlist, DB Exception.");
-    loggerError(exp);
+    loggerError(req, "ERROR: API userlist, get userlist, DB Exception.");
+    loggerError(req, exp);
   };
 
   if(userID == null) {
@@ -77,8 +77,8 @@ async function proc_download(req, res)
     });
   }
   catch(exp) {
-    loggerError("ERROR: API userlist, get userlist not app, DB Exception.");
-    loggerError(exp);
+    loggerError(req, "ERROR: API userlist, get userlist not app, DB Exception.");
+    loggerError(req, exp);
   };
 
   if(userIDNotApp == null) {
@@ -86,9 +86,9 @@ async function proc_download(req, res)
     return;
   }
 
-  loggerDebug(userID.toString());
-  loggerDebug(userIDNotApp.toString());
-  loggerInfo("API userlist, get info success.");
+  loggerDebug(req, userID.toString());
+  loggerDebug(req, userIDNotApp.toString());
+  loggerInfo(req, "API userlist, get info success.");
 
   res.status(200).json({
     success: true,
@@ -126,8 +126,8 @@ async function proc_upload(req, res) {
     }
   }
   catch(exp) {
-    loggerError("ERROR: API userlist, upload CSV param Exception.");
-    loggerError(exp);
+    loggerError(req, "ERROR: API userlist, upload CSV param Exception.");
+    loggerError(req, exp);
     expMsg = exp;
   }
 
@@ -189,7 +189,7 @@ async function proc_upload(req, res) {
     }
 
     //<---- DB更新 ---->
-    loggerDebug(tabledata.toString());
+    loggerDebug(req, tabledata.toString());
 
     try {
       [dbDelete, dbInsert] = await prisma.$transaction([
@@ -198,8 +198,8 @@ async function proc_upload(req, res) {
       ]);
     }
     catch(exp) {
-      loggerError("ERROR: API userlist, upload CSV DB fail. Exception.");
-      loggerError(exp);
+      loggerError(req, "ERROR: API userlist, upload CSV DB fail. Exception.");
+      loggerError(req, exp);
       success = false;
       msg = "ERROR: Upload UserID data, DB Fail. Exception.";
       expMsg = exp;
@@ -214,12 +214,12 @@ async function proc_upload(req, res) {
   }
 
   if(success == false) {
-    loggerError("ERROR: API userlist, upload CSV fail, " + msg);
+    loggerError(req, "ERROR: API userlist, upload CSV fail, " + msg);
   }
   else {
-    loggerInfo("API userlist, upload CSV success.");
-    loggerDebug(dbDelete);
-    loggerDebug(dbInsert);
+    loggerInfo(req, "API userlist, upload CSV success.");
+    loggerDebug(req, dbDelete);
+    loggerDebug(req, dbInsert);
   }
 
   res.status(status).json({

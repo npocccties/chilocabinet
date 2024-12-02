@@ -7,8 +7,8 @@ import prisma from "@/lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
-  loggerDebug(req.body);
-  loggerInfo("API badgelist, get info start.");
+  loggerDebug(req, req.body);
+  loggerInfo(req, "API badgelist, get info start.");
 
   let groupResult = null;
 
@@ -50,9 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
   catch(exp) {
-    loggerError("ERROR: API badgelist, DB access exception.")
-    loggerError(exp);
-    loggerDebug(groupResult);
+    loggerError(req, "ERROR: API badgelist, DB access exception.")
+    loggerError(req, exp);
+    loggerDebug(req, groupResult);
     groupResult = null;
   }
 
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ list: null, msg: "DB access error." });
   }
   else {
-    loggerInfo("API badgelist, get info success.");
+    loggerInfo(req, "API badgelist, get info success.");
     res.status(200).json({list: groupResult, msg: null});
   }
 

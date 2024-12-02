@@ -1,5 +1,6 @@
 import { loggerWarn } from "@/lib/logger";
 import { RetryConfig } from "@/types/config";
+import { NextApiRequest } from "next";
 
 const wait = (delay: number) => {
   return new Promise((resolve) => setTimeout(resolve, delay));
@@ -11,7 +12,7 @@ const wait = (delay: number) => {
  * @param config リトライ時の設定（リトライ回数、リトライ時間）
  * @returns
  */
-export const retryRequest = async (operation: () => Promise<any>, config: RetryConfig) => {
+export const retryRequest = async (req: NextApiRequest, operation: () => Promise<any>, config: RetryConfig) => {
   for (let i = 0; i < config.count; i++) {
     try {
       const res = await operation();
@@ -23,7 +24,7 @@ export const retryRequest = async (operation: () => Promise<any>, config: RetryC
       }
 
       if (i < config.count - 1) {
-        loggerWarn(`Retry attempt ${i + 1}: ${exp.message}, Retry Time: ${config.time} ms`);
+        loggerWarn(req, `Retry attempt ${i + 1}: ${exp.message}, Retry Time: ${config.time} ms`);
         await wait(config.time);
         continue;
       } else {
@@ -39,7 +40,7 @@ export const retryRequest = async (operation: () => Promise<any>, config: RetryC
  * @param config リトライ時の設定（リトライ回数、リトライ時間）
  * @returns
  */
-export const retryRequestForBadgeVerify = async (operation: () => Promise<any>, config: RetryConfig) => {
+export const retryRequestForBadgeVerify = async (req: NextApiRequest, operation: () => Promise<any>, config: RetryConfig) => {
   for (let i = 0; i < config.count; i++) {
     try {
       const res = await operation();
@@ -51,8 +52,8 @@ export const retryRequestForBadgeVerify = async (operation: () => Promise<any>, 
       }
     } catch (exp) {
       if (i < config.count - 1) {
-        loggerWarn(`ERROR: API submission_badge: OpenBadge validaterURL POST exception.`);
-        loggerWarn(`Retry attempt ${i + 1}: ${exp.message}, Retry Time: ${config.time} ms`);
+        loggerWarn(req, `ERROR: API submission_badge: OpenBadge validaterURL POST exception.`);
+        loggerWarn(req, `Retry attempt ${i + 1}: ${exp.message}, Retry Time: ${config.time} ms`);
         await wait(config.time);
         continue;
       } else {

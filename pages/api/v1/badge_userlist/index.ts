@@ -11,15 +11,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let exportFlg;
   let msg;
 
-  loggerDebug(req.body);
-  loggerInfo("API badge_userlist, start.");
+  loggerDebug(req, req.body);
+  loggerInfo(req, "API badge_userlist, start.");
 
   //<---- パラメータチェック ---->
 
   try {
     if(req.body.badge_class_id == null) {
       msg = "ERROR: param Badge classID is none.";
-      loggerError("ERROR: API badgeUserList, param Badge classID is none.");
+      loggerError(req, "ERROR: API badgeUserList, param Badge classID is none.");
     }
 
     //CSVエクスポート情報要求時はexportフラグONを設定
@@ -48,13 +48,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if(badgeClassID == null && msg == null) {
       msg = "ERROR: cannot parse, Badge classID.";
-      loggerError("ERROR: API badgeUserList, cannot parese, Badge classID.");
+      loggerError(req, "ERROR: API badgeUserList, cannot parese, Badge classID.");
     }
   }
   catch(exp) {
     msg = "ERROR: cannot parese, Badge classID.";
-    loggerError("ERROR: API badgeUserList, cannot parese, Badge classID. Exception.");
-    loggerError(exp)
+    loggerError(req, "ERROR: API badgeUserList, cannot parese, Badge classID. Exception.");
+    loggerError(req, exp)
   }
 
   if(msg != null) {
@@ -70,11 +70,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if(exportFlg) {
     //CSVエクスポート用情報取得
-    exportCsvBadgeUserList(badgeClassID, res);
+    exportCsvBadgeUserList(req, badgeClassID, res);
   }
   else {
     //バッジ一覧画面表示用情報取得
-    getBadgeUserList(badgeClassID, res);
+    getBadgeUserList(req, badgeClassID, res);
   }
 
   return;
@@ -82,14 +82,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 //<---- バッジ提出者一覧取得 ---->
 
-async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
+async function getBadgeUserList(req: NextApiRequest,  badgeClassID: string, res: NextApiResponse)
 {
   let badgeName = null;
   let badgeUserList = null;
   let badgeUserListNoApp = null;
 
   try {
-    loggerInfo(badgeClassID);
+    loggerInfo(req, badgeClassID);
 
     const result = await prisma.submittedBadges.findMany({
       select: {
@@ -109,7 +109,7 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
       distinct: ['userID'],
     });
 
-    loggerDebug(result.toString());
+    loggerDebug(req, result.toString());
 
     if(result.length >= 1) {
       badgeName = result[0].badgeName;
@@ -159,8 +159,8 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
     }).filter(Boolean);    // undifinedのデータは出力に含めない
   }
   catch(exp) {
-    loggerError("ERROR: API badgeUserList, DB access fail.");
-    loggerError(exp);
+    loggerError(req, "ERROR: API badgeUserList, DB access fail.");
+    loggerError(req, exp);
   };
 
   if(badgeName == null || badgeUserList == null || badgeUserListNoApp == null) {
@@ -186,7 +186,7 @@ async function getBadgeUserList( badgeClassID: string, res: NextApiResponse)
 
 //<---- バッジ提出者一覧CSVエクスポート情報取得 ---->
 
-async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiResponse)
+async function exportCsvBadgeUserList(req: NextApiRequest, badgeClassID: string[], res: NextApiResponse)
 {
   //現在時刻取得
   const JST_OFFSET = 9 * 60 * 60 * 1000; // 9 hours in milliseconds
@@ -206,7 +206,7 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
       dbResult1 = null;
       dbResult2 = null;
 
-      loggerInfo(badgeClassID[i]);
+      loggerInfo(req, badgeClassID[i]);
  
       try {
         [dbResult1, dbResult2] = await prisma.$transaction([
@@ -241,14 +241,14 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
           }),
         ]);
 
-        loggerDebug(dbResult1);
-        loggerDebug(dbResult2);
+        loggerDebug(req, dbResult1);
+        loggerDebug(req, dbResult2);
       }
       catch(e) {
         exp = e;
         ng = true;
-        loggerError("ERROR: API badge_userlist, get export CSV info, DB access Fail.");
-        loggerError(e);
+        loggerError(req, "ERROR: API badge_userlist, get export CSV info, DB access Fail.");
+        loggerError(req, e);
       }
 
       if(dbResult2 == null) {
@@ -291,8 +291,8 @@ async function exportCsvBadgeUserList(badgeClassID: string[], res: NextApiRespon
   catch(e) {
     exp = e;
     ng = true;
-    loggerError("ERROR: API badge_userlist, get export CSV info, parse time string Fail.");
-    loggerError(e);
+    loggerError(req, "ERROR: API badge_userlist, get export CSV info, parse time string Fail.");
+    loggerError(req, e);
   }
 
   if(ng == true) {
