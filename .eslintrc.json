@@ -17,6 +17,7 @@
     "@typescript-eslint/no-unused-vars": ["error"],
     "no-irregular-whitespace": "error",
     "unused-imports/no-unused-imports": "warn",
+    "no-useless-escape": "warn",
     "import/order": [
       "error",
       {
