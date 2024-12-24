@@ -38,9 +38,9 @@ type Props = {
 };
 
 export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2bg, initStartDate, initEndDate }: Props) => {
-  const [indicatorCode, setIndicatorCode] = useState("一般");
+  const [indicatorCode, setIndicatorCode] = useState("");
   const [indicatorCodeError, setIndicatorCodeError] = useState("");
-  const [trainingAttribute, setTrainingAttribute] = useState("希望研修");
+  const [trainingAttribute, setTrainingAttribute] = useState("");
   const [trainingAttributeError, setTrainingAttributeError] = useState("");
   const { value: trainingFlags, getCheckboxProps: getTrainingFlagsProps } = useCheckboxGroup();
   const { value: trainingThemes, getCheckboxProps: getTrainingThemesProps } = useCheckboxGroup();
@@ -97,13 +97,38 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
     }
     setEncodeError("");
 
+    // チェックボックスの並び順に対応する配列
+    const trainingFlagsOrder = [
+      'リアルタイム・オンライン',
+      '対面',
+      'オンデマンド',
+      'その他'
+    ];
+    const trainingThemesOrder = [
+      '教科指導関係',
+      '生徒指導・教育相談関係',
+      '特別支援教育関係',
+      '健康・安全教育関係',
+      '人権教育関係',
+      '情報教育関係',
+      'マネジメント関係',
+      'その他'
+    ];
+    // 並び順に基づいてソート
+    const sortedTrainingFlags = trainingFlagsOrder.filter((flag) =>
+      trainingFlags.includes(flag)
+    );
+    const sortedTrainingThemes = trainingThemesOrder.filter((theme) =>
+      trainingThemes.includes(theme)
+    );
+
     const param: CsvExportFormData = {
       indicatorCode: indicatorCode,
-      trainingFlags: trainingFlags.join(':'),
+      trainingFlags: sortedTrainingFlags.join('::'),
       trainingAttribute: trainingAttribute,
       startDate: values.startDate.toString().replace(/-/g, '/'),
       endDate: values.endDate.toString().replace(/-/g, '/'),
-      trainingThemes: trainingThemes.join(':'),
+      trainingThemes: sortedTrainingThemes.join('::'),
       encoding: encode.toString(),
     };
     console.log('param', param)
