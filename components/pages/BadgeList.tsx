@@ -198,7 +198,7 @@ export const BadgeList = () => {
              .replace(/\r/g, '\\r')
              .replace(/\n/g, '\\n')
              .replace(/\t/g, '\\t')
-             .replace(/"/g,'""')
+             .replace(/\"/g, '\"\"')
              .replace(/(.*[,"'`\\].*)/, '"$1"');
         }
 
