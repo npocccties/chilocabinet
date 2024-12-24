@@ -189,8 +189,8 @@ export const BadgeUserList = () => {
           }).join('\r\n');
 
           let header = 
-          "id,login_id,training_name,content,training_cd,operation_company_name,job_self_cd,training_flg,training_type_cd,date_from,date_to,training_themes,training_plans1,training_plans2,career_state_types,impressions_memo,del_flg\r\n" +
-          "ID,受講者ログインID,研修名,研修概要,研修コード,研修実施・運営者,指標一般コード,研修フラグ,研修属性コード,開始日,終了日,研修テーマ,育成指標(教員向け),育成指標(校長向け),キャリアステージ,受講した気づき・所感,削除\r\n";
+          "ID,受講者ログインID,研修名,研修概要,研修コード,研修実施・運営者,指標一般コード,研修フラグ,研修属性コード,開始日,終了日,研修テーマ,育成指標(教員向け),育成指標(校長向け),キャリアステージ,受講した気づき・所感,削除\r\n" +
+          "id,login_id,training_name,content,training_cd,operation_company_name,job_self_cd,training_flg,training_type_cd,date_from,date_to,training_themes,training_plans1,training_plans2,career_state_types,impressions_memo,del_flg\r\n";
           let blob: Blob;
           if (csvExportFormData.encoding == "Shift-JIS") {
             const sjisData = Encoding.convert(header + data, {to: 'SJIS', from: 'UNICODE', type: 'arraybuffer'});
