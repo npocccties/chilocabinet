@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAfter, isSameDay } from "date-fns";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CsvExportFormData } from "../Data";
@@ -46,6 +46,13 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
   const { value: trainingThemes, getCheckboxProps: getTrainingThemesProps } = useCheckboxGroup();
   const { value: encode, getRadioProps: getEncodeProps } = useRadioGroup();
   const [encodeError, setEncodeError] = useState("");
+
+  useEffect(() => {
+    // 初期値をセット
+    setIndicatorCode("指標");
+    setTrainingAttribute("希望研修");
+  }, []); // 初回レンダリング時のみ実行
+
   const formSchema = z
     .object({
       startDate: dateSchema,
