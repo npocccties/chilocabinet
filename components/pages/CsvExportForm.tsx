@@ -19,11 +19,12 @@ import {
   Button,
   useCheckboxGroup,
   useRadioGroup,
+  Box,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAfter, isSameDay } from "date-fns";
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { CsvExportFormData } from "../Data";
 
@@ -33,25 +34,21 @@ type Props = {
   color1: string;
   color2: string;
   color2bg: string;
+  initIndicatorCode: string;
+  initTrainingFlags: string[];
+  initTrainingAttribute: string;
   initStartDate: string;
   initEndDate: string;
+  initTrainingThemes: string[];
+  initEncoding: string;
 };
 
-export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2bg, initStartDate, initEndDate }: Props) => {
-  const [indicatorCode, setIndicatorCode] = useState("");
-  const [indicatorCodeError, setIndicatorCodeError] = useState("");
-  const [trainingAttribute, setTrainingAttribute] = useState("");
-  const [trainingAttributeError, setTrainingAttributeError] = useState("");
-  const { value: trainingFlags, getCheckboxProps: getTrainingFlagsProps } = useCheckboxGroup();
-  const { value: trainingThemes, getCheckboxProps: getTrainingThemesProps } = useCheckboxGroup();
-  const { value: encode, getRadioProps: getEncodeProps } = useRadioGroup();
-  const [encodeError, setEncodeError] = useState("");
-
-  useEffect(() => {
-    // 初期値をセット
-    setIndicatorCode("指標");
-    setTrainingAttribute("希望研修");
-  }, []); // 初回レンダリング時のみ実行
+export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2bg, initIndicatorCode, initTrainingFlags, initTrainingAttribute, initStartDate, initEndDate, initTrainingThemes, initEncoding }: Props) => {
+  const [indicatorCode, setIndicatorCode] = useState<string>();
+  const [indicatorCodeError, setIndicatorCodeError] = useState<string>();
+  const [trainingAttribute, setTrainingAttribute] = useState<string>();
+  const [trainingAttributeError, setTrainingAttributeError] = useState<string>();
+  const [encodeError, setEncodeError] = useState<string>();
 
   const formSchema = z
     .object({
@@ -82,9 +79,48 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
     register,
     handleSubmit,
     watch,
+    control,
+    reset,
     formState: { errors },
   } = useForm<CsvExportFormData>({ resolver: zodResolver(formSchema) });
   const { startDate, endDate } = watch();
+  const constTrainingFlags: string[] = [
+    'リアルタイム・オンライン',
+    '対面',
+    'オンデマンド',
+    'その他',
+  ];
+  const { value: trainingFlags, getCheckboxProps: getTrainingFlagsProps } = useCheckboxGroup({defaultValue: initTrainingFlags});
+  const constTrainingThemes = [
+    '教科指導関係',
+    '生徒指導・教育相談関係',
+    '特別支援教育関係',
+    '健康・安全教育関係',
+    '人権教育関係',
+    '情報教育関係',
+    'マネジメント関係',
+    'その他',
+  ];
+  const { value: trainingThemes, getCheckboxProps: getTrainingThemesProps } = useCheckboxGroup({defaultValue: initTrainingThemes});
+  const constEncoding = [
+    'UTF-8',
+    'Shift-JIS',
+  ];
+  const { value: encode, getRadioProps: getEncodeProps } = useRadioGroup({defaultValue: initEncoding});
+
+  useEffect(() => {
+    reset({
+      trainingFlags: initTrainingFlags,
+      trainingThemes: initTrainingThemes,
+      encoding: initEncoding,
+    });
+  }, [reset, initTrainingFlags]);
+
+  useEffect(() => {
+    // 初期値をセット
+    setIndicatorCode(initIndicatorCode);
+    setTrainingAttribute(initTrainingAttribute);
+  }, []); // 初回レンダリング時のみ実行
 
   const onSubmit = async (values: CsvExportFormData) => {
     // TODO: 本当はuseFormの仕組みでエラー検出したい
@@ -104,38 +140,21 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
     }
     setEncodeError("");
 
-    // チェックボックスの並び順に対応する配列
-    const trainingFlagsOrder = [
-      'リアルタイム・オンライン',
-      '対面',
-      'オンデマンド',
-      'その他'
-    ];
-    const trainingThemesOrder = [
-      '教科指導関係',
-      '生徒指導・教育相談関係',
-      '特別支援教育関係',
-      '健康・安全教育関係',
-      '人権教育関係',
-      '情報教育関係',
-      'マネジメント関係',
-      'その他'
-    ];
-    // 並び順に基づいてソート
-    const sortedTrainingFlags = trainingFlagsOrder.filter((flag) =>
+      // 並び順に基づいてソート
+    const sortedTrainingFlags = constTrainingFlags.filter((flag) =>
       trainingFlags.includes(flag)
     );
-    const sortedTrainingThemes = trainingThemesOrder.filter((theme) =>
+    const sortedTrainingThemes = constTrainingThemes.filter((theme) =>
       trainingThemes.includes(theme)
     );
 
     const param: CsvExportFormData = {
       indicatorCode: indicatorCode,
-      trainingFlags: sortedTrainingFlags.join('::'),
+      trainingFlags: sortedTrainingFlags,
       trainingAttribute: trainingAttribute,
       startDate: values.startDate.toString().replace(/-/g, '/'),
       endDate: values.endDate.toString().replace(/-/g, '/'),
-      trainingThemes: sortedTrainingThemes.join('::'),
+      trainingThemes: sortedTrainingThemes,
       encoding: encode.toString(),
     };
     console.log('param', param)
@@ -158,7 +177,7 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                   <FormLabel htmlFor="indicatorCode" mt={4} fontWeight="bold">
                     指標一般コード
                   </FormLabel>
-                  <Select id="indicatorCode" defaultValue="指標" onChange={(e) => setIndicatorCode(e.target.value)}>
+                  <Select id="indicatorCode" defaultValue={initIndicatorCode} onChange={(e) => setIndicatorCode(e.target.value)}>
                     <option value="指標">指標</option>
                     <option value="一般">一般</option>
                   </Select>
@@ -167,14 +186,22 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                   <FormLabel htmlFor="trainingFlags" mt={4} fontWeight="bold">
                     研修フラグ（複数選択可）
                   </FormLabel>
-                  <CheckboxGroup colorScheme="blue" >
-                    <Stack direction="row" spacing={6}>
-                      <Checkbox {...getTrainingFlagsProps({ value: 'リアルタイム・オンライン' })}>リアルタイム・オンライン</Checkbox>
-                      <Checkbox {...getTrainingFlagsProps({ value: '対面' })}>対面</Checkbox>
-                      <Checkbox {...getTrainingFlagsProps({ value: 'オンデマンド' })}>オンデマンド</Checkbox>
-                      <Checkbox {...getTrainingFlagsProps({ value: 'その他' })}>その他</Checkbox>
-                    </Stack>
-                  </CheckboxGroup>
+                  <Controller
+                    name="trainingFlags"
+                    control={control}
+                    render={({ field }) => (
+                      <CheckboxGroup {...field} colorScheme="blue">
+                        <Stack direction="row" wrap="wrap" spacing={6}>
+                          {constTrainingFlags &&
+                            constTrainingFlags.map((val) => (
+                              <Checkbox {...getTrainingFlagsProps({ value: val })}>
+                                {val}
+                              </Checkbox>
+                            ))}
+                        </Stack>
+                      </CheckboxGroup>
+                    )}
+                  />                  
                   <Text size="xs" mt={2} color={"red"}>
                     {indicatorCodeError}
                   </Text>
@@ -183,7 +210,7 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                   <FormLabel htmlFor="trainingAttribute" mt={4} fontWeight="bold">
                     研修属性コード
                   </FormLabel>
-                  <Select id="trainingAttribute" defaultValue="希望研修" onChange={(e) => setTrainingAttribute(e.target.value)}>
+                  <Select id="trainingAttribute" defaultValue={initTrainingAttribute} onChange={(e) => setTrainingAttribute(e.target.value)}>
                     <option value="希望研修">希望研修</option>
                     <option value="悉皆研修">悉皆研修</option>
                     <option value="指名研修">指名研修</option>
@@ -225,18 +252,22 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                   <FormLabel htmlFor="trainingThemes" mt={4} fontWeight="bold">
                     研修テーマ（複数選択可）
                   </FormLabel>
-                  <CheckboxGroup colorScheme="blue">
-                    <Stack direction="row" wrap="wrap" spacing={6}>
-                      <Checkbox {...getTrainingThemesProps({ value: '教科指導関係' })}>教科指導関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: '生徒指導・教育相談関係' })}>生徒指導・教育相談関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: '特別支援教育関係' })}>特別支援教育関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: '健康・安全教育関係' })}>健康・安全教育関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: '人権教育関係' })}>人権教育関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: '情報教育関係' })}>情報教育関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: 'マネジメント関係' })}>マネジメント関係</Checkbox>
-                      <Checkbox {...getTrainingThemesProps({ value: 'その他' })}>その他</Checkbox>
-                    </Stack>
-                  </CheckboxGroup>
+                  <Controller
+                    name="trainingThemes"
+                    control={control}
+                    render={({ field }) => (
+                      <CheckboxGroup {...field} colorScheme="blue">
+                        <Stack direction="row" wrap="wrap" spacing={6}>
+                          {constTrainingThemes &&
+                            constTrainingThemes.map((val) => (
+                              <Checkbox {...getTrainingThemesProps({ value: val })}>
+                                {val}
+                              </Checkbox>
+                            ))}
+                        </Stack>
+                      </CheckboxGroup>
+                    )}
+                  />
                   <Text size="xs" mt={2} color={"red"}>
                     {trainingAttributeError}
                   </Text>
@@ -245,12 +276,22 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                   <FormLabel htmlFor="encoding" mt={4} fontWeight="bold">
                     エンコード
                   </FormLabel>
-                  <RadioGroup value={encode.toString()}>
-                    <Stack direction="row" spacing={6}>
-                      <Radio {...getEncodeProps({ value: 'UTF-8' })}>UTF-8</Radio>
-                      <Radio {...getEncodeProps({ value: 'Shift-JIS' })}>Shift-JIS</Radio>
-                    </Stack>
-                  </RadioGroup>
+                  <Controller
+                    name="encoding"
+                    control={control}
+                    render={({ field }) => (
+                      <RadioGroup {...field} >
+                        <Stack direction="row" wrap="wrap" spacing={6}>
+                          {constEncoding &&
+                            constEncoding.map((val) => (
+                              <Radio {...getEncodeProps({ value: val })}>
+                                {val}
+                              </Radio>
+                            ))}
+                        </Stack>
+                      </RadioGroup>
+                    )}
+                  />
                   <Text size="xs" mt={2} color={"red"}>
                     {encodeError}
                   </Text>

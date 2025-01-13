@@ -16,6 +16,7 @@ import {
   useAppState_Dialog,
 } from "@/share/store/appState/main";
 import { CsvExportForm } from "./CsvExportForm";
+import { CsvExportFormData } from "../Data";
 
 //<---- ダイアログ表示コンポーネント ---->
 
@@ -28,6 +29,11 @@ export const Dialog = () => {
   const [delayClosing, setDelayClosing] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [trainingFlags, setTrainingFlags] = useState<string[]>([]);
+  const [trainingThemes, setTrainingThemes] = useState<string[]>([]);
+  const [encoding, setEncoding] = useState<string>();
+  const [indicatorCode, setIndicatorCode] = useState<string>();
+  const [trainingAttribute, setTrainingAttribute] = useState<string>();
   
   if(isOpen == false && statePage.event == AppEvent.ShowDialog) {
     onOpen();
@@ -36,11 +42,13 @@ export const Dialog = () => {
   useEffect(() => {
     // Set the default date to the current date for start and end date inputs
     const today = new Date().toISOString().split("T")[0];
-    setStartDate(today);
-    setEndDate(today);
+    if (!startDate || !endDate) {
+      setStartDate(today);
+      setEndDate(today);
+    }
   }, []);
 
-  const onCloseDialog = async (yesno: boolean | null, formData = {}) => {
+  const onCloseDialog = async (yesno: boolean | null, formData: any = {}) => {
 
     //DB削除時警告のためのダイアログ閉じるディレイ処理
     if(stateDialog.type == 1 && yesno === true && stateDialog.setResult != null) {
@@ -57,7 +65,16 @@ export const Dialog = () => {
     else {
       onClose();
       setStatePage({...statePage, event: null, lock: false});
-      if(stateDialog.setResult != null) {
+      if(stateDialog.type == 3 && yesno === true && stateDialog.setResult != null) {
+        const form: CsvExportFormData = formData;
+        console.log('formData', form)
+        setIndicatorCode(form.indicatorCode);
+        setTrainingFlags(form.trainingFlags);
+        setTrainingAttribute(form.trainingAttribute);
+        setStartDate((form.startDate as string).replaceAll('/', '-'));
+        setEndDate((form.endDate as string).replaceAll('/', '-'));
+        setTrainingThemes(form.trainingThemes);
+        setEncoding(form.encoding);
         stateDialog.setResult({type: stateDialog.type, yesno: yesno, formData: formData});
       }
     }
@@ -137,7 +154,9 @@ export const Dialog = () => {
         <AlertDialogOverlay />
 
         { stateDialog.type == 3 && (
-          <CsvExportForm cancelRef={cancelRef} onCloseDialog={onCloseDialog} color1={color1} color2={color2} color2bg={color2bg} initStartDate={startDate} initEndDate={endDate} />
+          <CsvExportForm cancelRef={cancelRef} onCloseDialog={onCloseDialog} color1={color1} color2={color2} color2bg={color2bg}
+          initIndicatorCode={indicatorCode} initTrainingFlags={trainingFlags} initTrainingThemes={trainingThemes}
+          initStartDate={startDate} initEndDate={endDate} initTrainingAttribute={trainingAttribute} initEncoding={encoding} />
         )}
         { stateDialog.type != 3 && (
           <AlertDialogContent hidden={delayClosing}>
