@@ -19,7 +19,6 @@ import {
   Button,
   useCheckboxGroup,
   useRadioGroup,
-  Box,
 } from "@chakra-ui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAfter, isSameDay } from "date-fns";
