@@ -122,7 +122,6 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
   }, []); // 初回レンダリング時のみ実行
 
   const onSubmit = async (values: CsvExportFormData) => {
-    // TODO: 本当はuseFormの仕組みでエラー検出したい
     if (trainingFlags.length == 0) {
       setIndicatorCodeError("研修フラグは少なくとも1つは選択してください。");
       return;
@@ -223,7 +222,6 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                     id="startDate"
                     type="date"
                     defaultValue={initStartDate}
-                    style={startDate === "" || !startDate ? { color: "#e5e7eb" } : {}}
                     {...register("startDate", {
                       required: { value: true, message: "開始日は必須です。" }
                     })}
@@ -238,7 +236,6 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
                     id="endDate"
                     type="date"
                     defaultValue={initEndDate}
-                    style={endDate === "" || !endDate ? { color: "#e5e7eb" } : {}}
                     {...register("endDate", {
                       required: { value: true, message: "終了日は必須です。" }
                     })}
