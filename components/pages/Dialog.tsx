@@ -31,7 +31,7 @@ export const Dialog = () => {
   const [endDate, setEndDate] = useState("");
   const [trainingFlags, setTrainingFlags] = useState<string[]>([]);
   const [trainingThemes, setTrainingThemes] = useState<string[]>([]);
-  const [encoding, setEncoding] = useState<string>();
+  const [encoding, setEncoding] = useState<string>("Shift-JIS");
   const [indicatorCode, setIndicatorCode] = useState<string>();
   const [trainingAttribute, setTrainingAttribute] = useState<string>();
   
