@@ -77,12 +77,10 @@ export const CsvExportForm = ({ cancelRef, onCloseDialog, color1, color2, color2
   const {
     register,
     handleSubmit,
-    watch,
     control,
     reset,
     formState: { errors },
   } = useForm<CsvExportFormData>({ resolver: zodResolver(formSchema) });
-  const { startDate, endDate } = watch();
   const constTrainingFlags: string[] = [
     'リアルタイム・オンライン',
     '対面',
