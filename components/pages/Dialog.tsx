@@ -8,13 +8,15 @@ import {
   AlertDialogOverlay,
   AlertDialogCloseButton,
 } from '@chakra-ui/react'
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   AppEvent,
   useAppState_Page,
   useAppState_Dialog,
 } from "@/share/store/appState/main";
+import { CsvExportForm } from "./CsvExportForm";
+import { CsvExportFormData } from "../Data";
 
 //<---- ダイアログ表示コンポーネント ---->
 
@@ -24,18 +26,32 @@ export const Dialog = () => {
   const [stateDialog] = useAppState_Dialog();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef();
-
   const [delayClosing, setDelayClosing] = useState(false);
-
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [trainingFlags, setTrainingFlags] = useState<string[]>([]);
+  const [trainingThemes, setTrainingThemes] = useState<string[]>([]);
+  const [encoding, setEncoding] = useState<string>("Shift-JIS");
+  const [indicatorCode, setIndicatorCode] = useState<string>();
+  const [trainingAttribute, setTrainingAttribute] = useState<string>();
+  
   if(isOpen == false && statePage.event == AppEvent.ShowDialog) {
     onOpen();
   }
 
- const onCloseDialog = async (yesno: boolean | null) => {
+  useEffect(() => {
+    // Set the default date to the current date for start and end date inputs
+    const today = new Date().toISOString().split("T")[0];
+    if (!startDate || !endDate) {
+      setStartDate(today);
+      setEndDate(today);
+    }
+  }, []);
+
+  const onCloseDialog = async (yesno: boolean | null, formData: any = {}) => {
 
     //DB削除時警告のためのダイアログ閉じるディレイ処理
     if(stateDialog.type == 1 && yesno === true && stateDialog.setResult != null) {
-
       setDelayClosing(true);
       setTimeout(() => {
         onClose();
@@ -49,12 +65,20 @@ export const Dialog = () => {
     else {
       onClose();
       setStatePage({...statePage, event: null, lock: false});
-      if(stateDialog.setResult != null) {
-        stateDialog.setResult({type: stateDialog.type, yesno: yesno});
+      if(stateDialog.type == 3 && yesno === true && stateDialog.setResult != null) {
+        const form: CsvExportFormData = formData;
+        console.log('formData', form)
+        setIndicatorCode(form.indicatorCode);
+        setTrainingFlags(form.trainingFlags);
+        setTrainingAttribute(form.trainingAttribute);
+        setStartDate((form.startDate as string).replaceAll('/', '-'));
+        setEndDate((form.endDate as string).replaceAll('/', '-'));
+        setTrainingThemes(form.trainingThemes);
+        setEncoding(form.encoding);
+        stateDialog.setResult({type: stateDialog.type, yesno: yesno, formData: formData});
       }
     }
   }
-
   //<---- ダイアログ表示内容を設定 ---->
 
   let title = "タイトル";
@@ -86,7 +110,7 @@ export const Dialog = () => {
 
   if(stateDialog.type == 3) {
     title = "バッジ提出者ダウンロード";
-    msg = "対象のバッジ提出者一覧を取得しをCSVファイルに出力します。";
+    msg = "対象のバッジ一覧を取得しCSVファイルに出力します。";
     button1 = "キャンセル";
     button2 = "OK";
   }
@@ -129,23 +153,31 @@ export const Dialog = () => {
       >
         <AlertDialogOverlay />
 
-        <AlertDialogContent hidden={delayClosing}>
-          <AlertDialogHeader>
-            {title}
-          </AlertDialogHeader>
-          <AlertDialogCloseButton hidden={useCloseButton == false} />
-          <AlertDialogBody>
-            {msg}
-          </AlertDialogBody>
-          <AlertDialogFooter>
-            <Button hidden={button1 == null} colorScheme={color1} ref={cancelRef} onClick={() => onCloseDialog(false)}>
-              {button1}
-            </Button>
-            <Button hidden={button2 == null} colorScheme={color2} backgroundColor={color2bg} ml={3} onClick={() => onCloseDialog(true)}>
-              {button2}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        { stateDialog.type == 3 && (
+          <CsvExportForm cancelRef={cancelRef} onCloseDialog={onCloseDialog} color1={color1} color2={color2} color2bg={color2bg}
+          initIndicatorCode={indicatorCode} initTrainingFlags={trainingFlags} initTrainingThemes={trainingThemes}
+          initStartDate={startDate} initEndDate={endDate} initTrainingAttribute={trainingAttribute} initEncoding={encoding} />
+        )}
+        { stateDialog.type != 3 && (
+          <AlertDialogContent hidden={delayClosing}>
+            <AlertDialogHeader>
+              {title}
+            </AlertDialogHeader>
+            <AlertDialogCloseButton hidden={useCloseButton == false} />
+            <AlertDialogBody>
+              {msg}
+            </AlertDialogBody>
+            <AlertDialogFooter>
+              <Button hidden={button1 == null} colorScheme={color1} ref={cancelRef} onClick={() => onCloseDialog(false)}>
+                {button1}
+              </Button>
+              <Button hidden={button2 == null} colorScheme={color2} backgroundColor={color2bg} ml={3} onClick={() => onCloseDialog(true)}>
+                {button2}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+
       </AlertDialog>
     </>
   );
