@@ -32,8 +32,8 @@ export const Dialog = () => {
   const [trainingFlags, setTrainingFlags] = useState<string[]>([]);
   const [trainingThemes, setTrainingThemes] = useState<string[]>([]);
   const [encoding, setEncoding] = useState<string>("Shift-JIS");
-  const [indicatorCode, setIndicatorCode] = useState<string>();
-  const [trainingAttribute, setTrainingAttribute] = useState<string>();
+  const [indicatorCode, setIndicatorCode] = useState<string>("指標");
+  const [trainingAttribute, setTrainingAttribute] = useState<string>("希望研修");
   
   if(isOpen == false && statePage.event == AppEvent.ShowDialog) {
     onOpen();
