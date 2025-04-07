@@ -76,6 +76,8 @@ export const Dialog = () => {
         setTrainingThemes(form.trainingThemes);
         setEncoding(form.encoding);
         stateDialog.setResult({type: stateDialog.type, yesno: yesno, formData: formData});
+      } else if(stateDialog.setResult != null) {
+        stateDialog.setResult({type: stateDialog.type, yesno: yesno, formData: formData});
       }
     }
   }
