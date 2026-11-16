@@ -28,10 +28,37 @@ services:
     networks:
       - app_network
       - db_network
+      - verifier_network
     container_name: chilocabinet
+    depends_on:
+      obv-validator:
+        condition: service_healthy
     restart: always
     environment:
       - LOG_LEVEL=$LOG_LEVEL
+    logging:
+      driver: json-file
+      options:
+        max-size: ${LOG_MAX_SIZE}
+        max-file: ${LOG_MAX_FILE}
+
+  # Open Badge 検証サービス（openbadges-validator-core）。キャビネットからのみ参照し、外部には公開しない。
+  # 取得先は ALLOWED_FETCH_HOSTS に限定する（DBのネットワークには接続しない）。
+  obv-validator:
+    build:
+      context: ${BADGE_VERIFIER_BUILD_CONTEXT:?BADGE_VERIFIER_BUILD_CONTEXT is not set}
+    networks:
+      - verifier_network
+    restart: always
+    environment:
+      - ALLOWED_FETCH_HOSTS=${ALLOWED_FETCH_HOSTS:?ALLOWED_FETCH_HOSTS is not set}
+    # コンテナ内の gunicorn が応答するまでキャビネットを起動しない。
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     logging:
       driver: json-file
       options:
@@ -44,3 +71,5 @@ networks:
   db_network:
     driver: bridge
     external: true
+  verifier_network:
+    driver: bridge

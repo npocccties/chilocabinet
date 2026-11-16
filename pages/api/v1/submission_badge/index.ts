@@ -7,9 +7,9 @@ import { getResolver } from "web-did-resolver"
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { OPENBADGE_VERIFIER_URL } from "@/configs/constants";
 import { badgeDataRetryConfig, openbadgeVerifyRetryConfig, resolveDIDRetryConfig } from "@/configs/retry";
 import {loggerError, loggerWarn, loggerInfo, loggerDebug } from "@/lib/logger";
+import { requestVerifier } from "@/lib/openBadgeVerifier";
 import prisma from "@/lib/prisma";
 import { retryRequest, retryRequestForBadgeVerify } from "@/lib/retryRequest";
 
@@ -603,54 +603,27 @@ export const validateOpenBadge = async (
   }
 
 
-  let retValidate;
-  try {
-    retValidate = await retryRequestForBadgeVerify(() => {
-      return axios.post(
-        OPENBADGE_VERIFIER_URL,
-        {
-          data: JSON.stringify(openBadgeMetadata),
-        },
-        {
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
-    }, openbadgeVerifyRetryConfig)
-  }
-  catch(exp) {
-    loggerError(`ERROR: API submission_badge: OpenBadge validaterURL POST exception, retry out.`);
-    loggerError(exp);
-
-    //if(debugData.skipCheckBadgeMetaData == false)
-    {
-      return { result: false, msg: "OpenBadge validater POST Fail, URL = " +  OPENBADGE_VERIFIER_URL};
-    }
+  const verifierUrl = process.env.openbadge_verifier_url;
+  if (!verifierUrl) {
+    loggerError(`ERROR: API submission_badge: openbadge_verifier_url is not set.`);
+    return { result: false, msg: "OpenBadge verification temporarily unavailable: verifier is not configured" };
   }
 
-  loggerDebug(retValidate);
-  loggerDebug("END openBadgeValidator ret=" + retValidate.data.report.valid);
+  const verified = await retryRequestForBadgeVerify(
+    () => requestVerifier(verifierUrl, openBadgeMetadata),
+    (r) => r.status === "unavailable",
+    openbadgeVerifyRetryConfig,
+  );
 
-  let result;
-  let msg;
-  if( retValidate != null && retValidate.data != null && retValidate.data.report != null && retValidate.data.report.valid != null) {
-    result = retValidate.data.report.valid;
-    msg = JSON.stringify(retValidate.data.report);
+  if (verified.status === "valid") {
+    return { result: true, msg: "validateOpenBadge success" };
   }
-
-  if(result == true) {
-    msg = 'validateOpenBadge success';
+  if (verified.status === "unavailable") {
+    // 検証サービスや発行元に接続できないなど、一時的な理由で検証できなかった。
+    // 応答は従来どおり 400・102 とし、reason_msg でバッジ不正と区別する。
+    loggerError(`ERROR: API submission_badge: OpenBadge verification unavailable: ${verified.reason}`);
+    return { result: false, msg: "OpenBadge verification temporarily unavailable" };
   }
-  else if(msg == null) {
-    msg = 'validateOpenBadge Fail';
-
-    loggerError(`ERROR: API submission_badge: OpenBadge validater result, NG.`);
-  }
-
-  //if(debugData.skipCheckBadgeMetaData == true) {
-  //  result = true;
-  //}
-
-  return { result, msg };
+  loggerError(`ERROR: API submission_badge: OpenBadge verification failed: ${verified.reason}`);
+  return { result: false, msg: "OpenBadge verification failed" };
 }

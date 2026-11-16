@@ -102,6 +102,8 @@ npx prisma studio
    ./app_start.sh
    ```
    * 権限付与後の `app_start.sh` は何度でも実行可能です
+   * 既存の環境を更新する場合は、ソースを更新（`git pull`）した後、`app_restart.sh` などを実行する前に、[5. 環境変数](#5-環境変数) の必須項目（`BADGE_VERIFIER_BUILD_CONTEXT`、`ALLOWED_FETCH_HOSTS`、`openbadge_verifier_url` など）を追加してください
+      * 未設定のままだと、停止処理（`docker compose down`）も含めてエラーになります
 
 1. 備考  
    コンテナ起動  
@@ -178,6 +180,8 @@ sampleに記載の値はダミー値です。 運用環境に合わせて適宜�
 |LOG_MAX_SIZE|ログファイルサイズ<br>単位には k / m / g のいずれか指定|100m|必須|
 |LOG_MAX_FILE|ログファイルの世代数|7|必須|
 |DUMP_BACKUP_DIR|DBの圧縮ファイルのバックアップディレクトリ（絶対パス指定）<br>DBバックアップを実行すると `/var/chilocabinet.dump` をダンプ出力するが、そのダンプファイルを下記命名で圧縮したうえで左記ディレクトリに格納する<br>`chilocabinet.dump_{yyyyMMdd}.tar.gz`|/var/chilocabinet/db_dump_backup|必須|
+|BADGE_VERIFIER_BUILD_CONTEXT|Open Badge検証サービス（openbadges-validator-core）のビルド元<br>Gitリポジトリ（`<リポジトリURL>#<タグ>`）またはローカルのディレクトリを指定する<br>Python 3.12 対応と取得先の制限を入れた fork（`https://github.com/npocccties/openbadges-validator-core.git`）を想定<br>ブランチを指定するとデプロイのたびに最新のコードでビルドされるため、本番ではタグを指定する|-|必須|
+|ALLOWED_FETCH_HOSTS|Open Badge検証サービスが取得してよいホスト名（カンマ区切り、完全一致、https・443番ポートのみ）<br>バッジを発行するMoodleのホスト名を指定する（例：`lms.example.org`）|-|必須|
 |DUMP_BACKUP_COUNT|DBの圧縮ファイルの保持日数<br>・保持日数を経過したDBの圧縮ファイルは削除される (例)1週間、保持したい場合は `7` を指定する<br>・削除の契機は、DBバックアップの実行時<br>・起点は昨日|7|必須|
 
 ## 5-2. Next.jsアプリケーション用
@@ -204,6 +208,7 @@ https://nextjs.org/docs/pages/building-your-application/configuring/environment-
 |NEXT_PUBLIC_HELP_LINK|ヘッダの「ヘルプ」をクリックした場合に開かれるURL|-|必須|
 |badge_data_request_retry_count|バッジデータ取得時のリトライ回数設定|-|必須|
 |badge_data_request_retry_time|バッジデータ取得時のリトライ間隔（ms）設定|-|必須|
+|openbadge_verifier_url|Open Badge検証サービス（openbadges-validator-core）の `/results` エンドポイントのURL<br>docker-compose.production.yml の検証サービスを使う場合は `http://obv-validator:8000/results`|-|必須|
 |oepnbadge_verify_api_request_retry_count|openbadge検証用APIアクセス失敗時のリトライ回数設定|-|必須|
 |oepnbadge_verify_api_request_retry_time|openbadge検証用APIアクセス失敗時のリトライ間隔（ms）設定|-|必須|
 |resolve_did_request_retry_count|didの名前解決を行う際のリトライ回数設定|-|必須|
@@ -228,13 +233,11 @@ server {
 
 ```
 export const EXPORT_CSV_VER="20231115";
-export const OPENBADGE_VERIFIER_URL="https://openbadgesvalidator.1edtech.org/results";
 ```
 
 | 変数名                               | 説明                                        | 
 | :----------------------------------- | :------------------------------------------ | 
 |EXPORT_CSV_VER|バッジ提出者リストCSVを出力する際にCSVバージョンカラムに設定される文字列です|
-|OPENBADGE_VERIFIER_URL|ウォレットからバッジ提出時にバッジの妥当性確認のために使用する検証サイトURLです|
 
 # 7. BASIC認証ファイルの配置・編集
 BASIC認証ファイルを配置する事により認証設定を行います。サーバー稼働中でもファイル更新すれば認証設定更新されます。
