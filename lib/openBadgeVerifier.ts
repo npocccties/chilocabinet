@@ -57,6 +57,10 @@ export const classifyVerifierReport = (report: VerifierReport | undefined): Open
   };
 };
 
+// 検証サービスへの 1 回の問い合わせを打ち切るまでの時間（ms）。
+// 検証サービス側は発行元への取得ごとに FETCH_TIMEOUT（既定 10 秒）で打ち切るため、通常はこれより十分短く終わる。
+const VERIFIER_TIMEOUT_MS = 60_000;
+
 /**
  * 検証サービスに 1 回問い合わせ、結果を分類して返す（例外は投げない）。
  */
@@ -71,6 +75,7 @@ export const requestVerifier = async (verifierUrl: string, openBadgeMetadata: an
         headers: {
           Accept: "application/json",
         },
+        timeout: VERIFIER_TIMEOUT_MS,
       },
     );
     loggerInfo(`API submission_badge: OpenBadge verification report: ${JSON.stringify(data?.report)}`);

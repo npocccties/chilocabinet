@@ -583,7 +583,13 @@ export const validateOpenBadge = async (
   email: string,
   openBadgeMetadata: any
 ) => {
-  const [, expectedEmailHash] = openBadgeMetadata.recipient.identity.split("$");
+  const identity = openBadgeMetadata?.recipient?.identity;
+  if (typeof identity !== "string") {
+    loggerError(`ERROR: API submission_badge: OpenBadge meta data has no recipient identity.`);
+    return { result: false, msg: "no exist data, OpenBadge meta data: recipient.identity" };
+  }
+
+  const [, expectedEmailHash] = identity.split("$");
   const salt = openBadgeMetadata.recipient.salt;
   let saltVal = salt === null || salt === undefined ? "" : salt;
   loggerDebug("saltVal=" + saltVal);
