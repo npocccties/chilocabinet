@@ -10,3 +10,6 @@ db/
 .env.local
 .env.development
 .env.production
+
+# Open Badge 検証サービスの監視スクリプトの状態ファイル
+.badge_verifier_state
