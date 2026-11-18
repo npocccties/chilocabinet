@@ -23,10 +23,7 @@ services:
         max-size: ${LOG_MAX_SIZE}
         max-file: ${LOG_MAX_FILE}
     depends_on:
-      db:
-        condition: service_started
-      obv-validator:
-        condition: service_healthy
+      - db
 
   db:
     image: postgres:13
